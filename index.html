@@ -1832,11 +1832,6 @@
             <i class="fas fa-bookmark"></i>
             <span>المحفوظات</span>
         </div>
-        <!-- عنصر تسجيل الدخول في الشريط السفلي -->
-        <div class="nav-item" onclick="window.location.href='auth.html'">
-            <i class="fas fa-user"></i>
-            <span>دخول</span>
-        </div>
         <div class="nav-item report-nav-item" onclick="reportIssue()">
             <i class="fas fa-exclamation-triangle"></i>
             <span>إبلاغ</span>
@@ -1850,7 +1845,6 @@
             <i class="fas fa-user-circle"></i>
             <span id="bottomUserName"></span>
         </div>
-    </nav>
 
     </nav>
 
@@ -1908,7 +1902,7 @@
         // Import Firebase modules
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
-        import { getDatabase, ref as dbRef, get, update } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js';
+        import { getDatabase, ref as dbRef, get, update, set } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js';
 
         // Firebase configuration (replace with your project's config)
         const firebaseConfig = {
@@ -1958,6 +1952,8 @@
         let bookmarkedFatwas = JSON.parse(localStorage.getItem('bookmarkedFatwas')) || [];
         // Object to hold user-specific settings (theme, readingMode, etc.) loaded from Firebase.
         let userSettings = {};
+        // Object to hold user profile information such as display name loaded from Firebase.
+        let userProfile = {};
         let recognition;
         let currentView = 'latest';
         let currentCategory = null;
@@ -2187,6 +2183,164 @@
                 saveUserSettings({ readingMode: isReadingMode });
             }
             showNotification(isReadingMode ? 'تم تفعيل وضع القراءة' : 'تم إلغاء وضع القراءة');
+        }
+
+        /**
+         * تحديث واجهة المستخدم في عناصر تسجيل الدخول والحساب بناءً على حالة المصادقة.
+         * إذا كان المستخدم مسجلاً الدخول، يتم إخفاء زر تسجيل الدخول وإظهار معلومات المستخدم.
+         */
+        function updateAuthUI() {
+            const loginBtn = document.getElementById('loginBtn');
+            const userMenu = document.getElementById('userMenu');
+            const loginNav = document.getElementById('loginNavItem');
+            const userNav = document.getElementById('userNavItem');
+            if (currentUser) {
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (userMenu) userMenu.style.display = 'block';
+                if (loginNav) loginNav.style.display = 'none';
+                if (userNav) userNav.style.display = 'flex';
+                updateUserNameDisplay();
+            } else {
+                if (loginBtn) loginBtn.style.display = 'block';
+                if (userMenu) userMenu.style.display = 'none';
+                if (loginNav) loginNav.style.display = 'flex';
+                if (userNav) userNav.style.display = 'none';
+            }
+        }
+
+        /**
+         * تحديث اسم المستخدم المعروض في الواجهة الرئيسية والشريط السفلي.
+         */
+        function updateUserNameDisplay() {
+            let name = '';
+            if (currentUser && currentUser.displayName) {
+                name = currentUser.displayName;
+            } else if (userProfile && userProfile.name) {
+                name = userProfile.name;
+            }
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const bottomUserName = document.getElementById('bottomUserName');
+            if (userNameDisplay) userNameDisplay.textContent = name;
+            if (bottomUserName) bottomUserName.textContent = name;
+        }
+
+        /**
+         * تبديل ظهور قائمة المستخدم المنسدلة في الشريط العلوي.
+         */
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            if (!dropdown) return;
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        /**
+         * فتح نافذة إعدادات الحساب وتهيئة حقل الاسم بالاسم الحالي للمستخدم.
+         */
+        function openSettings() {
+            const modal = document.getElementById('settingsModal');
+            const nameInput = document.getElementById('userNameInput');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+            // أغلق القائمة المنسدلة عند فتح الإعدادات
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.style.display = 'none';
+            // ملء حقل الاسم الحالي
+            let currentName = '';
+            if (currentUser && currentUser.displayName) {
+                currentName = currentUser.displayName;
+            } else if (userProfile && userProfile.name) {
+                currentName = userProfile.name;
+            }
+            if (nameInput) {
+                nameInput.value = currentName;
+            }
+        }
+
+        /**
+         * إغلاق نافذة إعدادات الحساب بدون حفظ.
+         */
+        function closeSettings() {
+            const modal = document.getElementById('settingsModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        /**
+         * حفظ الاسم الجديد للمستخدم في Firebase وتحديث الواجهة.
+         */
+        async function saveName() {
+            const nameInput = document.getElementById('userNameInput');
+            if (!nameInput) return;
+            const newName = nameInput.value.trim();
+            if (!newName) {
+                showNotification('الرجاء إدخال اسم صالح', 'error');
+                return;
+            }
+            if (!currentUser) {
+                showNotification('يجب تسجيل الدخول لتعديل الاسم', 'error');
+                return;
+            }
+            try {
+                // تحديث اسم العرض في مصادقة Firebase
+                await updateProfile(currentUser, { displayName: newName });
+                // تحديث الاسم في قاعدة البيانات
+                await update(dbRef(db, `users/${currentUser.uid}/profile`), { name: newName });
+                // تحديث المتغير المحلي
+                userProfile = { ...userProfile, name: newName };
+                updateUserNameDisplay();
+                showNotification('تم تحديث الاسم بنجاح');
+                closeSettings();
+            } catch (e) {
+                console.error('Error updating name:', e);
+                showNotification('حدث خطأ أثناء تحديث الاسم', 'error');
+            }
+        }
+
+        /**
+         * تسجيل خروج المستخدم وإعادة توجيهه إلى صفحة تسجيل الدخول مع إشعار.
+         */
+        async function logout() {
+            try {
+                await signOut(auth);
+                currentUser = null;
+                userProfile = {};
+                updateAuthUI();
+                showNotification('تم تسجيل الخروج بنجاح');
+                setTimeout(() => {
+                    window.location.href = 'auth.html';
+                }, 800);
+            } catch (e) {
+                console.error('Error signing out:', e);
+                showNotification('حدث خطأ أثناء تسجيل الخروج', 'error');
+            }
+        }
+
+        /**
+         * تحميل عدد الإعجابات وحالة الإعجاب للمستخدم لهذه الفتوى وتحديث واجهة البطاقة.
+         * @param {string} fatwaId - معرف الفتوى.
+         * @param {HTMLElement} card - عنصر البطاقة لفتوى معينة.
+         */
+        async function updateLikeDisplay(fatwaId, card) {
+            try {
+                // الحصول على قائمة الإعجابات من قاعدة البيانات
+                const snapshot = await get(dbRef(db, `fatwasLikes/${fatwaId}/likes`));
+                let likesObj = snapshot.exists() ? snapshot.val() : {};
+                const count = likesObj ? Object.keys(likesObj).length : 0;
+                // تحديث النص في عنصر العداد
+                const likeCountSpan = card.querySelector('.like-count');
+                if (likeCountSpan) likeCountSpan.textContent = count;
+                // إذا كان المستخدم مسجلاً الدخول، حدّد ما إذا كان قد أعجب بهذه الفتوى
+                const button = card.querySelector('.like-btn');
+                if (button && currentUser) {
+                    if (likesObj && likesObj[currentUser.uid]) {
+                        button.classList.add('liked');
+                    } else {
+                        button.classList.remove('liked');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading likes:', error);
+            }
         }
 
         function toggleBurgerMenu() {
@@ -2678,8 +2832,10 @@
             card.setAttribute('data-aos', 'fade-up');
             card.setAttribute('data-aos-delay', (Math.random() * 600));
             
-            const likes = JSON.parse(localStorage.getItem(`likes-${fatwa.id}`)) || 0;
-            const comments = JSON.parse(localStorage.getItem(`comments-${fatwa.id}`)) || [];
+            // سيتم جلب عدد الإعجابات من قاعدة البيانات، لذا نهيئ القيمة الافتراضية إلى 0
+            const likes = 0;
+            // التعليقات المستقبلية يمكن تحميلها بطريقة مشابهة في المستقبل
+            const comments = [];
 
             // Escape HTML to prevent XSS
             const escapeHtml = (text) => {
@@ -2732,7 +2888,8 @@
                 
 
             `;
-
+            // بعد إنشاء البطاقة، نقوم بتحديث عرض الإعجابات من قاعدة البيانات
+            updateLikeDisplay(fatwa.id, card);
             return card;
         }
 
@@ -3040,19 +3197,37 @@
             }
         }
 
-        function toggleLike(fatwaId, button) {
+        async function toggleLike(fatwaId, button) {
             try {
-                let likes = JSON.parse(localStorage.getItem(`likes-${fatwaId}`)) || 0;
-                if (button.classList.contains('liked')) {
-                    likes--;
-                    button.classList.remove('liked');
-                } else {
-                    likes++;
-                    button.classList.add('liked');
+                // يجب على المستخدم تسجيل الدخول لإعجاب الفتوى
+                if (!currentUser) {
+                    showNotification('يرجى تسجيل الدخول للإعجاب بالفتوى', 'error');
+                    return;
                 }
-                localStorage.setItem(`likes-${fatwaId}`, likes);
-                button.querySelector('.like-count').textContent = likes;
-                showNotification(button.classList.contains('liked') ? 'تم الإعجاب' : 'تم إلغاء الإعجاب');
+                // جلب بيانات الإعجابات الحالية من قاعدة البيانات
+                const likesSnapshot = await get(dbRef(db, `fatwasLikes/${fatwaId}/likes`));
+                let likesObj = likesSnapshot.exists() ? likesSnapshot.val() : {};
+                const liked = likesObj && likesObj[currentUser.uid];
+                if (liked) {
+                    // إذا كان المستخدم قد أعجب مسبقاً، قم بإزالة الإعجاب
+                    delete likesObj[currentUser.uid];
+                } else {
+                    // إضافة إعجاب المستخدم
+                    likesObj = { ...likesObj, [currentUser.uid]: true };
+                }
+                // تحديث قاعدة البيانات
+                await update(dbRef(db, `fatwasLikes/${fatwaId}`), { likes: likesObj });
+                // تحديث واجهة المستخدم
+                const likeCountSpan = button.querySelector('.like-count');
+                const newCount = likesObj ? Object.keys(likesObj).length : 0;
+                if (likeCountSpan) likeCountSpan.textContent = newCount;
+                if (liked) {
+                    button.classList.remove('liked');
+                    showNotification('تم إلغاء الإعجاب');
+                } else {
+                    button.classList.add('liked');
+                    showNotification('تم الإعجاب');
+                }
             } catch (error) {
                 console.error('Error toggling like:', error);
                 showNotification('خطأ في حفظ الإعجاب', 'error');
@@ -3171,7 +3346,15 @@
             printFatwa,
             shareAsImage,
             toggleLike,
-            filterByCategory
+            filterByCategory,
+            // Functions related to authentication UI and account management
+            updateAuthUI,
+            updateUserNameDisplay,
+            toggleUserDropdown,
+            openSettings,
+            closeSettings,
+            saveName,
+            logout
         });
 
         // تحديث شريط التقدم بناءً على التمرير
