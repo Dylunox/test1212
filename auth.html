@@ -168,27 +168,17 @@
     </div>
 
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, sendEmailVerification, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
-        import { getDatabase, ref as dbRef, set } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js';
+        // Import Supabase client
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-        // Firebase configuration (replace with your project's config)
-        const firebaseConfig = {
-            apiKey: "AIzaSyD8t8mNgxRq0Kivx55VTGQRrZCZU40QS1g",
-            authDomain: "taqwa-1090d.firebaseapp.com",
-            databaseURL: "https://taqwa-1090d-default-rtdb.firebaseio.com",
-            projectId: "taqwa-1090d",
-            storageBucket: "taqwa-1090d.firebasestorage.app",
-            messagingSenderId: "592345552776",
-            appId: "1:592345552776:web:beb884c5b844a4275ccc3d",
-            measurementId: "G-09H2NHZWGG"
-        };
+        // Supabase configuration using values provided by the user.
+        // NOTE: the anon key below should be kept secret in a real application. It is placed here
+        // directly for demonstration purposes.
+        const supabaseUrl = 'https://duziwzkjxexcafssvgns.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1eml3emtqeGV4Y2Fmc3N2Z25zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODgxOTMzNSwiZXhwIjoyMDc0Mzk1MzM1fQ.BYaWZyhV4kS85HGszA5mOt56g-OS07jMO4-dLD3Fv_k';
 
-        // Initialize Firebase
-        const firebaseApp = initializeApp(firebaseConfig);
-        const auth = getAuth(firebaseApp);
-        const db = getDatabase(firebaseApp);
+        // Create Supabase client
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
         // DOM Elements
         const loginForm = document.getElementById('loginForm');
@@ -219,7 +209,7 @@
             signupError.textContent = '';
         });
 
-        // Handle signup
+        // Handle signup using Supabase
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('signupEmail').value.trim();
@@ -237,25 +227,52 @@
                 return;
             }
             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                // Set user's display name
-                await updateProfile(user, { displayName: name });
-                // Create user record in Realtime Database with default settings and empty bookmarks
-                await set(dbRef(db, `users/${user.uid}`), {
-                    email: user.email,
-                    profile: { name: name },
-                    settings: { theme: 'light', readingMode: false },
-                    bookmarks: []
+                // Create user account with Supabase, storing name in user metadata
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: { name }
+                    }
                 });
-                // Send email verification to the newly created user
-                try {
-                    await sendEmailVerification(user);
-                } catch (verifError) {
-                    console.error('Error sending verification email:', verifError);
+                if (error) {
+                    // Map Supabase errors to user-friendly messages
+                    let errMsg = '';
+                    const msg = error.message || '';
+                    if (msg.toLowerCase().includes('email')) {
+                        if (msg.toLowerCase().includes('invalid')) {
+                            errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
+                        } else if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('exists')) {
+                            errMsg = 'البريد الإلكتروني مستخدم بالفعل.';
+                        } else {
+                            errMsg = 'حدث خطأ يتعلق بالبريد الإلكتروني.';
+                        }
+                    } else if (msg.toLowerCase().includes('password')) {
+                        errMsg = 'كلمة المرور ضعيفة. يرجى اختيار كلمة مرور أقوى.';
+                    } else {
+                        errMsg = 'حدث خطأ أثناء إنشاء الحساب.';
+                    }
+                    signupError.textContent = errMsg;
+                    return;
                 }
-                // Sign out the user after sign up to ensure they verify their email before logging in
-                await signOut(auth);
+                const user = data?.user;
+                // Insert a user record into the "users" table with default settings and empty bookmarks
+                if (user) {
+                    const { error: insertError } = await supabase
+                        .from('users')
+                        .insert({
+                            id: user.id,
+                            email: user.email,
+                            profile: { name },
+                            settings: { theme: 'light', readingMode: false },
+                            bookmarks: []
+                        });
+                    if (insertError) {
+                        console.error('Error inserting user record:', insertError);
+                    }
+                }
+                // Sign out the user to ensure they verify their email before logging in
+                await supabase.auth.signOut();
                 Toastify({
                     text: 'تم إنشاء الحساب بنجاح. تم إرسال رابط التفعيل إلى بريدك الإلكتروني، يرجى التحقق ثم تسجيل الدخول.',
                     duration: 5000,
@@ -269,38 +286,44 @@
                     toLogin.click();
                 }, 800);
             } catch (error) {
-                let errMsg = '';
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        errMsg = 'البريد الإلكتروني مستخدم بالفعل.';
-                        break;
-                    case 'auth/invalid-email':
-                        errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
-                        break;
-                    case 'auth/weak-password':
-                        errMsg = 'كلمة المرور ضعيفة. يرجى اختيار كلمة مرور أقوى.';
-                        break;
-                    default:
-                        errMsg = 'حدث خطأ أثناء إنشاء الحساب.';
-                        break;
-                }
-                signupError.textContent = errMsg;
+                console.error('Error during sign up:', error);
+                signupError.textContent = 'حدث خطأ أثناء إنشاء الحساب.';
             }
         });
 
-        // Handle login
+        // Handle login using Supabase
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             loginError.textContent = '';
             try {
-                const cred = await signInWithEmailAndPassword(auth, email, password);
-                // Reload the current user to get the latest emailVerified status
-                await auth.currentUser.reload();
-                if (!auth.currentUser.emailVerified) {
-                    // If email is not verified, sign the user out and show an error message
-                    await signOut(auth);
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+                if (error) {
+                    // Map Supabase error messages to user-friendly messages
+                    let errMsg = '';
+                    const msg = error.message || '';
+                    if (msg.toLowerCase().includes('invalid')) {
+                        errMsg = 'بيانات الدخول غير صحيحة.';
+                    } else if (msg.toLowerCase().includes('email')) {
+                        errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
+                    } else {
+                        errMsg = 'بيانات الدخول غير صحيحة أو حدث خطأ. حاول مرة أخرى.';
+                    }
+                    loginError.textContent = errMsg;
+                    return;
+                }
+                const user = data?.user;
+                if (!user) {
+                    loginError.textContent = 'بيانات الدخول غير صحيحة.';
+                    return;
+                }
+                // Check email verification status
+                if (!user.email_confirmed_at) {
+                    await supabase.auth.signOut();
                     Toastify({
                         text: 'يجب تفعيل بريدك الإلكتروني قبل تسجيل الدخول. تم إرسال رابط التفعيل إلى بريدك عند إنشاء الحساب.',
                         duration: 5000,
@@ -317,25 +340,13 @@
                     position: 'right',
                     style: { background: '#16a34a' }
                 }).showToast();
+                // Redirect to index.html after a short delay
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 800);
             } catch (error) {
-                let errMsg = '';
-                switch (error.code) {
-                    case 'auth/invalid-login-credentials':
-                    case 'auth/user-not-found':
-                    case 'auth/wrong-password':
-                        errMsg = 'بيانات الدخول غير صحيحة.';
-                        break;
-                    case 'auth/invalid-email':
-                        errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
-                        break;
-                    default:
-                        errMsg = 'بيانات الدخول غير صحيحة أو حدث خطأ. حاول مرة أخرى.';
-                        break;
-                }
-                loginError.textContent = errMsg;
+                console.error('Error during sign in:', error);
+                loginError.textContent = 'بيانات الدخول غير صحيحة أو حدث خطأ. حاول مرة أخرى.';
             }
         });
 
