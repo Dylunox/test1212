@@ -680,14 +680,19 @@
 
         /* User Menu Styles */
         .user-btn {
-            background: none;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 25px;
             border: none;
             color: #ffffff;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-size: 1rem;
+        }
+        body.dark-mode .user-btn {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .user-dropdown {
@@ -803,6 +808,63 @@
         }
         body.dark-mode .modal-actions button:last-child {
             background: #334155;
+            color: #e2e8f0;
+        }
+
+        /* Password Modal Styles */
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 3000;
+        }
+        .password-content {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 30px 25px;
+            width: 90%;
+            max-width: 420px;
+            text-align: right;
+        }
+        .password-content h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-family: 'Amiri', serif;
+            color: #1e3a8a;
+            font-size: 1.6rem;
+        }
+        .password-content label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+            color: #374151;
+        }
+        .password-content input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .password-content input:focus {
+            border-color: #ca8a04;
+        }
+        body.dark-mode .password-content {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+        body.dark-mode .password-content input {
+            background: #334155;
+            border-color: #475569;
             color: #e2e8f0;
         }
 
@@ -1647,6 +1709,7 @@
                     </button>
                     <div id="userDropdown" class="user-dropdown" style="display:none;">
                         <button onclick="openSettings()">إعدادات الحساب</button>
+                        <button onclick="openPasswordModal()">تغيير كلمة المرور</button>
                         <button onclick="logout()">تسجيل الخروج</button>
                     </div>
                 </div>
@@ -1863,6 +1926,21 @@
         </div>
     </div>
 
+    <!-- Password Change Modal -->
+    <div id="passwordModal" class="password-modal">
+        <div class="password-content">
+            <h3>تغيير كلمة المرور</h3>
+            <label for="newPasswordInput">كلمة المرور الجديدة:</label>
+            <input type="password" id="newPasswordInput" placeholder="أدخل كلمة المرور الجديدة" />
+            <label for="confirmNewPasswordInput">تأكيد كلمة المرور الجديدة:</label>
+            <input type="password" id="confirmNewPasswordInput" placeholder="أعد إدخال كلمة المرور الجديدة" />
+            <div class="modal-actions">
+                <button onclick="changePassword()">حفظ</button>
+                <button onclick="closePasswordModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <!-- زر العودة لأعلى الصفحة -->
     <button id="scrollTopBtn" class="scroll-top-btn" onclick="scrollToTop()">
         <i class="fas fa-arrow-up"></i>
@@ -1899,60 +1977,89 @@
     </div>
 
     <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
-        import { getDatabase, ref as dbRef, get, update, set } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js';
+        // Import Supabase client
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-        // Firebase configuration (replace with your project's config)
-        const firebaseConfig = {
-            apiKey: "AIzaSyD8t8mNgxRq0Kivx55VTGQRrZCZU40QS1g",
-            authDomain: "taqwa-1090d.firebaseapp.com",
-            databaseURL: "https://taqwa-1090d-default-rtdb.firebaseio.com",
-            projectId: "taqwa-1090d",
-            storageBucket: "taqwa-1090d.firebasestorage.app",
-            messagingSenderId: "592345552776",
-            appId: "1:592345552776:web:beb884c5b844a4275ccc3d",
-            measurementId: "G-09H2NHZWGG"
-        };
+        // Supabase configuration
+        const supabaseUrl = 'https://duziwzkjxexcafssvgns.supabase.co';
+        // NOTE: this is a public anon key provided by the user.
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1eml3emtqeGV4Y2Fmc3N2Z25zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODgxOTMzNSwiZXhwIjoyMDc0Mzk1MzM1fQ.BYaWZyhV4kS85HGszA5mOt56g-OS07jMO4-dLD3Fv_k';
 
-        // Initialize Firebase
-        const firebaseApp = initializeApp(firebaseConfig);
-        const auth = getAuth(firebaseApp);
-        const db = getDatabase(firebaseApp);
+        // Create Supabase client
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-        // Current authenticated user
+        // Current authenticated user (Supabase)
         let currentUser = null;
 
+        // Note: currentUser is now managed via Supabase auth state
+        // See checkAuth() for how it is set.
+
         /**
-         * Check authentication state on page load using Firebase. If the user is not signed in,
+         * Check authentication state on page load using Supabase. If the user is not signed in,
          * redirect to the authentication page. Otherwise, load user data and initialize features.
          */
-        function checkAuth() {
-            onAuthStateChanged(auth, async (user) => {
-                if (!user) {
+        async function checkAuth() {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error) {
+                    console.error('Error fetching session:', error);
+                }
+                if (!session || !session.user) {
                     // User is not authenticated, redirect to auth page
                     window.location.href = 'auth.html';
-                } else {
-                    currentUser = user;
-                    try {
-                        await loadUserData();
-                    } catch (e) {
-                        console.error('خطأ في تحميل بيانات المستخدم:', e);
-                    }
-                    initializeAppFeatures();
-                    updateAuthUI();
+                    return;
                 }
-            });
+                // If the user has not confirmed their email, sign them out and redirect
+                if (!session.user.email_confirmed_at) {
+                    // Show a notification before redirecting
+                    showNotification('يجب تفعيل بريدك الإلكتروني قبل تسجيل الدخول. تم إرسال رابط التفعيل إلى بريدك عند إنشاء الحساب.', 'error');
+                    await supabase.auth.signOut();
+                    window.location.href = 'auth.html';
+                    return;
+                }
+                currentUser = session.user;
+                try {
+                    await loadUserData();
+                } catch (e) {
+                    console.error('خطأ في تحميل بيانات المستخدم:', e);
+                }
+                initializeAppFeatures();
+                updateAuthUI();
+                // Listen for future auth state changes (e.g., logout)
+                supabase.auth.onAuthStateChange((event, newSession) => {
+                    if (!newSession || !newSession.user) {
+                        currentUser = null;
+                        userProfile = {};
+                        updateAuthUI();
+                        window.location.href = 'auth.html';
+                    } else {
+                        // Only allow authenticated and verified users
+                        if (!newSession.user.email_confirmed_at) {
+                            showNotification('يجب تفعيل بريدك الإلكتروني قبل تسجيل الدخول. تم إرسال رابط التفعيل إلى بريدك عند إنشاء الحساب.', 'error');
+                            supabase.auth.signOut();
+                            window.location.href = 'auth.html';
+                            return;
+                        }
+                        currentUser = newSession.user;
+                        // Reload user-specific data when re-authenticated
+                        loadUserData().then(() => {
+                            updateAuthUI();
+                        });
+                    }
+                });
+            } catch (err) {
+                console.error('Auth check error:', err);
+                window.location.href = 'auth.html';
+            }
         }
 
         // Global Variables
         let fatwaData = {};
-        // Bookmarked fatwas array will be loaded from Firebase for authenticated users.
+        // Bookmarked fatwas array will be loaded from Supabase for authenticated users.
         let bookmarkedFatwas = JSON.parse(localStorage.getItem('bookmarkedFatwas')) || [];
-        // Object to hold user-specific settings (theme, readingMode, etc.) loaded from Firebase.
+        // Object to hold user-specific settings (theme, readingMode, etc.) loaded from Supabase.
         let userSettings = {};
-        // Object to hold user profile information such as display name loaded from Firebase.
+        // Object to hold user profile information such as display name loaded from Supabase.
         let userProfile = {};
         let recognition;
         let currentView = 'latest';
@@ -2011,22 +2118,27 @@
         }
 
         /**
-         * Load user-specific settings and bookmarks from Firebase.
+         * Load user-specific settings and bookmarks from Supabase.
          * This function is invoked after the user has been authenticated.
          */
         async function loadUserData() {
             if (!currentUser) return;
             try {
-                const snapshot = await get(dbRef(db, `users/${currentUser.uid}`));
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    userSettings = data.settings || {};
-                    bookmarkedFatwas = Array.isArray(data.bookmarks) ? data.bookmarks : [];
-                    userProfile = data.profile || {};
-                } else {
+                // Fetch user settings, bookmarks, and profile from Supabase "users" table
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('settings, bookmarks, profile')
+                    .eq('id', currentUser.id)
+                    .single();
+                if (error) {
+                    console.error('Error fetching user data:', error);
                     userSettings = {};
                     bookmarkedFatwas = [];
                     userProfile = {};
+                } else {
+                    userSettings = data?.settings || {};
+                    bookmarkedFatwas = Array.isArray(data?.bookmarks) ? data.bookmarks : [];
+                    userProfile = data?.profile || {};
                 }
                 // Apply theme and reading mode based on user settings or fallback
                 applyThemeFromSettings();
@@ -2104,7 +2216,7 @@
         }
 
         /**
-         * Save updated settings back to Firebase.
+         * Save updated settings back to Supabase.
          * @param {Object} updates - Partial settings to merge.
          */
         async function saveUserSettings(updates) {
@@ -2112,19 +2224,32 @@
             try {
                 // Merge with current settings
                 userSettings = { ...userSettings, ...updates };
-                await update(dbRef(db, `users/${currentUser.uid}/settings`), userSettings);
+                // Update user settings in Supabase
+                const { error } = await supabase
+                    .from('users')
+                    .update({ settings: userSettings })
+                    .eq('id', currentUser.id);
+                if (error) {
+                    console.error('خطأ في تحديث إعدادات المستخدم:', error);
+                }
             } catch (e) {
                 console.error('خطأ في تحديث إعدادات المستخدم:', e);
             }
         }
 
         /**
-         * Update bookmarks array in Firebase.
+         * Update bookmarks array in Supabase.
          */
         async function updateBookmarksInDb() {
             if (!currentUser) return;
             try {
-                await update(dbRef(db, `users/${currentUser.uid}`), { bookmarks: bookmarkedFatwas });
+                const { error } = await supabase
+                    .from('users')
+                    .update({ bookmarks: bookmarkedFatwas })
+                    .eq('id', currentUser.id);
+                if (error) {
+                    console.error('خطأ في تحديث المحفوظات:', error);
+                }
             } catch (e) {
                 console.error('خطأ في تحديث المحفوظات:', e);
             }
@@ -2170,7 +2295,7 @@
             }
             // Update localStorage for offline fallback
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            // Persist theme in Firebase settings if user is authenticated
+            // Persist theme in Supabase settings if user is authenticated
             if (currentUser) {
                 saveUserSettings({ theme: isDark ? 'dark' : 'light' });
             }
@@ -2178,7 +2303,7 @@
 
         function toggleReadingMode() {
             const isReadingMode = document.body.classList.toggle('reading-mode');
-            // Persist reading mode in Firebase settings if user is authenticated
+            // Persist reading mode in Supabase settings if user is authenticated
             if (currentUser) {
                 saveUserSettings({ readingMode: isReadingMode });
             }
@@ -2213,10 +2338,13 @@
          */
         function updateUserNameDisplay() {
             let name = '';
-            if (currentUser && currentUser.displayName) {
-                name = currentUser.displayName;
-            } else if (userProfile && userProfile.name) {
+            if (userProfile && userProfile.name) {
                 name = userProfile.name;
+            } else if (currentUser && currentUser.user_metadata && currentUser.user_metadata.name) {
+                name = currentUser.user_metadata.name;
+            } else if (currentUser && currentUser.email) {
+                // استخدام البريد الإلكتروني كحل احتياطي
+                name = currentUser.email;
             }
             const userNameDisplay = document.getElementById('userNameDisplay');
             const bottomUserName = document.getElementById('bottomUserName');
@@ -2247,10 +2375,12 @@
             if (dropdown) dropdown.style.display = 'none';
             // ملء حقل الاسم الحالي
             let currentName = '';
-            if (currentUser && currentUser.displayName) {
-                currentName = currentUser.displayName;
-            } else if (userProfile && userProfile.name) {
+            if (userProfile && userProfile.name) {
                 currentName = userProfile.name;
+            } else if (currentUser && currentUser.user_metadata && currentUser.user_metadata.name) {
+                currentName = currentUser.user_metadata.name;
+            } else if (currentUser && currentUser.email) {
+                currentName = currentUser.email;
             }
             if (nameInput) {
                 nameInput.value = currentName;
@@ -2266,7 +2396,7 @@
         }
 
         /**
-         * حفظ الاسم الجديد للمستخدم في Firebase وتحديث الواجهة.
+         * حفظ الاسم الجديد للمستخدم في Supabase وتحديث الواجهة.
          */
         async function saveName() {
             const nameInput = document.getElementById('userNameInput');
@@ -2281,10 +2411,25 @@
                 return;
             }
             try {
-                // تحديث اسم العرض في مصادقة Firebase
-                await updateProfile(currentUser, { displayName: newName });
-                // تحديث الاسم في قاعدة البيانات
-                await update(dbRef(db, `users/${currentUser.uid}/profile`), { name: newName });
+                // تحديث البيانات التعريفية للمستخدم في Supabase
+                const { error: updateMetaError } = await supabase.auth.updateUser({
+                    data: { name: newName }
+                });
+                if (updateMetaError) {
+                    console.error('Error updating user metadata:', updateMetaError);
+                    showNotification('حدث خطأ أثناء تحديث الاسم', 'error');
+                    return;
+                }
+                // تحديث الاسم في جدول المستخدمين
+                const { error: dbErr } = await supabase
+                    .from('users')
+                    .update({ profile: { name: newName } })
+                    .eq('id', currentUser.id);
+                if (dbErr) {
+                    console.error('Error updating name in DB:', dbErr);
+                    showNotification('حدث خطأ أثناء تحديث الاسم', 'error');
+                    return;
+                }
                 // تحديث المتغير المحلي
                 userProfile = { ...userProfile, name: newName };
                 updateUserNameDisplay();
@@ -2301,7 +2446,7 @@
          */
         async function logout() {
             try {
-                await signOut(auth);
+                await supabase.auth.signOut();
                 currentUser = null;
                 userProfile = {};
                 updateAuthUI();
@@ -2322,17 +2467,25 @@
          */
         async function updateLikeDisplay(fatwaId, card) {
             try {
-                // الحصول على قائمة الإعجابات من قاعدة البيانات
-                const snapshot = await get(dbRef(db, `fatwasLikes/${fatwaId}/likes`));
-                let likesObj = snapshot.exists() ? snapshot.val() : {};
-                const count = likesObj ? Object.keys(likesObj).length : 0;
+                // الحصول على عدد الإعجابات وبيانات المستخدمين الذين أعجبوا من جدول fatwa_likes
+                const { data: likesData, count, error } = await supabase
+                    .from('fatwa_likes')
+                    .select('user_id', { count: 'exact' })
+                    .eq('fatwa_id', fatwaId);
+                if (error) {
+                    console.error('Error loading likes:', error);
+                    return;
+                }
+                const likeCount = count || 0;
                 // تحديث النص في عنصر العداد
                 const likeCountSpan = card.querySelector('.like-count');
-                if (likeCountSpan) likeCountSpan.textContent = count;
+                if (likeCountSpan) likeCountSpan.textContent = likeCount;
                 // إذا كان المستخدم مسجلاً الدخول، حدّد ما إذا كان قد أعجب بهذه الفتوى
                 const button = card.querySelector('.like-btn');
                 if (button && currentUser) {
-                    if (likesObj && likesObj[currentUser.uid]) {
+                    const likedByCurrent =
+                        likesData && likesData.some((row) => row.user_id === currentUser.id);
+                    if (likedByCurrent) {
                         button.classList.add('liked');
                     } else {
                         button.classList.remove('liked');
@@ -2340,6 +2493,63 @@
                 }
             } catch (error) {
                 console.error('Error loading likes:', error);
+            }
+        }
+
+        /**
+         * فتح نافذة تغيير كلمة المرور.
+         */
+        function openPasswordModal() {
+            const modal = document.getElementById('passwordModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+            // أغلق القائمة المنسدلة عند فتح الإعدادات
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.style.display = 'none';
+        }
+
+        /**
+         * إغلاق نافذة تغيير كلمة المرور.
+         */
+        function closePasswordModal() {
+            const modal = document.getElementById('passwordModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        /**
+         * تغيير كلمة مرور المستخدم الحالي بعد التحقق من إدخال صحيح.
+         */
+        async function changePassword() {
+            const newPassInput = document.getElementById('newPasswordInput');
+            const confirmPassInput = document.getElementById('confirmNewPasswordInput');
+            if (!newPassInput || !confirmPassInput) return;
+            const newPassword = newPassInput.value.trim();
+            const confirmPassword = confirmPassInput.value.trim();
+            if (!newPassword || !confirmPassword) {
+                showNotification('يرجى إدخال كلمة المرور الجديدة وتأكيدها', 'error');
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                showNotification('كلمتا المرور غير متطابقتين', 'error');
+                return;
+            }
+            if (!currentUser) {
+                showNotification('يجب تسجيل الدخول لتغيير كلمة المرور', 'error');
+                return;
+            }
+            try {
+                const { error } = await supabase.auth.updateUser({ password: newPassword });
+                if (error) {
+                    console.error('Error updating password:', error);
+                    showNotification('حدث خطأ أثناء تغيير كلمة المرور', 'error');
+                    return;
+                }
+                showNotification('تم تغيير كلمة المرور بنجاح');
+                closePasswordModal();
+            } catch (e) {
+                console.error('Error updating password:', e);
+                showNotification('حدث خطأ أثناء تغيير كلمة المرور', 'error');
             }
         }
 
@@ -3114,7 +3324,7 @@
             }
             // Update local cache
             localStorage.setItem('bookmarkedFatwas', JSON.stringify(bookmarkedFatwas));
-            // Persist bookmarks in Firebase if authenticated
+            // Persist bookmarks in Supabase if authenticated
             updateBookmarksInDb();
             // Refresh bookmark icons
             updateBookmarkButtons();
@@ -3199,34 +3409,54 @@
 
         async function toggleLike(fatwaId, button) {
             try {
-                // يجب على المستخدم تسجيل الدخول لإعجاب الفتوى
+                // يجب على المستخدم تسجيل الدخول للإعجاب بالفتوى
                 if (!currentUser) {
                     showNotification('يرجى تسجيل الدخول للإعجاب بالفتوى', 'error');
                     return;
                 }
-                // جلب بيانات الإعجابات الحالية من قاعدة البيانات
-                const likesSnapshot = await get(dbRef(db, `fatwasLikes/${fatwaId}/likes`));
-                let likesObj = likesSnapshot.exists() ? likesSnapshot.val() : {};
-                const liked = likesObj && likesObj[currentUser.uid];
-                if (liked) {
-                    // إذا كان المستخدم قد أعجب مسبقاً، قم بإزالة الإعجاب
-                    delete likesObj[currentUser.uid];
-                } else {
-                    // إضافة إعجاب المستخدم
-                    likesObj = { ...likesObj, [currentUser.uid]: true };
+                // فحص ما إذا كان المستخدم قد أعجب بالفتوى بالفعل
+                const { data: existingLikes, error } = await supabase
+                    .from('fatwa_likes')
+                    .select('id')
+                    .eq('fatwa_id', fatwaId)
+                    .eq('user_id', currentUser.id);
+                if (error) {
+                    console.error('Error fetching like:', error);
+                    showNotification('خطأ في حفظ الإعجاب', 'error');
+                    return;
                 }
-                // تحديث قاعدة البيانات
-                await update(dbRef(db, `fatwasLikes/${fatwaId}`), { likes: likesObj });
-                // تحديث واجهة المستخدم
-                const likeCountSpan = button.querySelector('.like-count');
-                const newCount = likesObj ? Object.keys(likesObj).length : 0;
-                if (likeCountSpan) likeCountSpan.textContent = newCount;
-                if (liked) {
+                if (existingLikes && existingLikes.length > 0) {
+                    // إذا كان المستخدم قد أعجب مسبقاً، قم بإزالة الإعجاب
+                    const likeId = existingLikes[0].id;
+                    const { error: deleteErr } = await supabase
+                        .from('fatwa_likes')
+                        .delete()
+                        .eq('id', likeId);
+                    if (deleteErr) {
+                        console.error('Error removing like:', deleteErr);
+                        showNotification('خطأ في حفظ الإعجاب', 'error');
+                        return;
+                    }
+                    // تحديث واجهة المستخدم
                     button.classList.remove('liked');
                     showNotification('تم إلغاء الإعجاب');
                 } else {
+                    // إضافة إعجاب المستخدم
+                    const { error: insertErr } = await supabase
+                        .from('fatwa_likes')
+                        .insert({ fatwa_id: fatwaId, user_id: currentUser.id });
+                    if (insertErr) {
+                        console.error('Error adding like:', insertErr);
+                        showNotification('خطأ في حفظ الإعجاب', 'error');
+                        return;
+                    }
                     button.classList.add('liked');
                     showNotification('تم الإعجاب');
+                }
+                // تحديث العداد والحالة
+                const card = button.closest('.fatwa-card');
+                if (card) {
+                    updateLikeDisplay(fatwaId, card);
                 }
             } catch (error) {
                 console.error('Error toggling like:', error);
@@ -3354,7 +3584,10 @@
             openSettings,
             closeSettings,
             saveName,
-            logout
+            logout,
+            openPasswordModal,
+            closePasswordModal,
+            changePassword
         });
 
         // تحديث شريط التقدم بناءً على التمرير
