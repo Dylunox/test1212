@@ -154,6 +154,7 @@
         </form>
         <!-- Signup Form -->
         <form id="signupForm">
+            <input type="text" id="signupName" placeholder="الاسم الكامل" required>
             <input type="email" id="signupEmail" placeholder="البريد الإلكتروني" required>
             <input type="password" id="signupPassword" placeholder="كلمة المرور" required>
             <input type="password" id="signupConfirmPassword" placeholder="تأكيد كلمة المرور" required>
@@ -167,29 +168,27 @@
     </div>
 
     <script type="module">
-        // Import Firebase modules from CDN
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
-        // We intentionally omit analytics import to avoid the "auth/configuration-not-found" error
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js';
-        import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js';
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+        import { getDatabase, ref as dbRef, set } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js';
 
-        // Firebase configuration
+        // Firebase configuration (replace with your project's config)
         const firebaseConfig = {
-            apiKey: 'AIzaSyD8t8mNgxRq0Kivx55VTGQRrZCZU40QS1g',
-            authDomain: 'taqwa-1090d.firebaseapp.com',
-            databaseURL: 'https://taqwa-1090d-default-rtdb.firebaseio.com',
-            projectId: 'taqwa-1090d',
-            storageBucket: 'taqwa-1090d.firebasestorage.app',
-            messagingSenderId: '592345552776',
-            appId: '1:592345552776:web:beb884c5b844a4275ccc3d',
-            measurementId: 'G-09H2NHZWGG'
+            apiKey: "AIzaSyD8t8mNgxRq0Kivx55VTGQRrZCZU40QS1g",
+            authDomain: "taqwa-1090d.firebaseapp.com",
+            databaseURL: "https://taqwa-1090d-default-rtdb.firebaseio.com",
+            projectId: "taqwa-1090d",
+            storageBucket: "taqwa-1090d.firebasestorage.app",
+            messagingSenderId: "592345552776",
+            appId: "1:592345552776:web:beb884c5b844a4275ccc3d",
+            measurementId: "G-09H2NHZWGG"
         };
 
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        // Do not call getAnalytics here. It may throw auth/configuration-not-found if analytics isn't configured.
-        const auth = getAuth(app);
-        const db = getDatabase(app);
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+        const db = getDatabase(firebaseApp);
 
         // DOM Elements
         const loginForm = document.getElementById('loginForm');
@@ -226,23 +225,29 @@
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
             const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            const name = document.getElementById('signupName').value.trim();
             signupError.textContent = '';
             // Validate password match
             if (password !== confirmPassword) {
                 signupError.textContent = 'كلمتا المرور غير متطابقتين.';
                 return;
             }
+            if (!name) {
+                signupError.textContent = 'يرجى إدخال الاسم.';
+                return;
+            }
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                // Store user basic info in Realtime Database; initialize settings and bookmarks for this user
-                await set(ref(db, 'users/' + user.uid), {
+                // Set user's display name
+                await updateProfile(user, { displayName: name });
+                // Create user record in Realtime Database with default settings and empty bookmarks
+                await set(dbRef(db, `users/${user.uid}`), {
                     email: user.email,
+                    profile: { name: name },
                     settings: { theme: 'light', readingMode: false },
                     bookmarks: []
                 });
-                // Show success message
-                signupError.textContent = '';
                 Toastify({
                     text: 'تم إنشاء الحساب بنجاح. يمكنك الآن تسجيل الدخول.',
                     duration: 4000,
@@ -250,27 +255,26 @@
                     position: 'right',
                     style: { background: '#16a34a' }
                 }).showToast();
-                // Reset form fields
                 signupForm.reset();
                 // Switch to login form after a short delay
                 setTimeout(() => {
                     toLogin.click();
-                }, 500);
+                }, 800);
             } catch (error) {
-                // Handle errors gracefully
-                let errMsg = error.message || '';
-                // Firebase error codes can be accessed via error.code
-                if (error.code === 'auth/configuration-not-found') {
-                    errMsg = 'لم يتم تهيئة خدمة المصادقة لحساب Firebase الخاص بك. يرجى تفعيل تسجيل الدخول بالبريد الإلكتروني من لوحة Firebase.';
-                } else if (error.code === 'auth/email-already-in-use') {
-                    errMsg = 'البريد الإلكتروني مستخدم بالفعل.';
-                } else if (error.code === 'auth/weak-password') {
-                    errMsg = 'كلمة المرور ضعيفة. يرجى اختيار كلمة مرور أقوى.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
-                } else {
-                    // Fallback generic message
-                    errMsg = 'حدث خطأ: ' + errMsg;
+                let errMsg = '';
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errMsg = 'البريد الإلكتروني مستخدم بالفعل.';
+                        break;
+                    case 'auth/invalid-email':
+                        errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
+                        break;
+                    case 'auth/weak-password':
+                        errMsg = 'كلمة المرور ضعيفة. يرجى اختيار كلمة مرور أقوى.';
+                        break;
+                    default:
+                        errMsg = 'حدث خطأ أثناء إنشاء الحساب.';
+                        break;
                 }
                 signupError.textContent = errMsg;
             }
@@ -284,7 +288,6 @@
             loginError.textContent = '';
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // On successful login redirect to index
                 Toastify({
                     text: 'تم تسجيل الدخول بنجاح',
                     duration: 2500,
@@ -297,16 +300,18 @@
                 }, 800);
             } catch (error) {
                 let errMsg = '';
-                if (error.code === 'auth/configuration-not-found') {
-                    errMsg = 'لم يتم تهيئة خدمة المصادقة لحساب Firebase الخاص بك. يرجى تفعيل تسجيل الدخول بالبريد الإلكتروني من لوحة Firebase.';
-                } else if (error.code === 'auth/user-not-found') {
-                    errMsg = 'لا يوجد حساب بهذا البريد.';
-                } else if (error.code === 'auth/wrong-password') {
-                    errMsg = 'كلمة المرور غير صحيحة.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
-                } else {
-                    errMsg = 'بيانات الدخول غير صحيحة أو حدث خطأ. حاول مرة أخرى.';
+                switch (error.code) {
+                    case 'auth/invalid-login-credentials':
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        errMsg = 'بيانات الدخول غير صحيحة.';
+                        break;
+                    case 'auth/invalid-email':
+                        errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
+                        break;
+                    default:
+                        errMsg = 'بيانات الدخول غير صحيحة أو حدث خطأ. حاول مرة أخرى.';
+                        break;
                 }
                 loginError.textContent = errMsg;
             }
