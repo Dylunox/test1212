@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="صفحة تسجيل الدخول وإنشاء الحساب - منصة المحراب">
+    <title>تسجيل الدخول - منصة المحراب</title>
+
+    <!-- Fonts and Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3a8a, #ca8a04);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #1e293b;
+        }
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        body.dark-mode .auth-container {
+            background: rgba(30, 41, 59, 0.95);
+            color: #e2e8f0;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-family: 'Amiri', serif;
+            color: #1e3a8a;
+        }
+        body.dark-mode h2 {
+            color: #60a5fa;
+        }
+        form {
+            display: none;
+        }
+        form.active {
+            display: block;
+        }
+        .auth-container input {
+            width: 100%;
+            padding: 14px 18px;
+            margin-bottom: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .auth-container input:focus {
+            border-color: #ca8a04;
+            box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.1);
+        }
+        .auth-container button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ca8a04, #f59e0b);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .auth-container button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(202, 138, 4, 0.3);
+        }
+        .form-msg {
+            min-height: 20px;
+            font-size: 0.9rem;
+            color: #dc2626;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+        body.dark-mode .form-msg {
+            color: #f87171;
+        }
+        .toggle-links {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .toggle-links span {
+            color: #1e3a8a;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        body.dark-mode .toggle-links span {
+            color: #60a5fa;
+        }
+        .toggle-links span:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h2 id="formTitle">تسجيل الدخول</h2>
+        <!-- Login Form -->
+        <form id="loginForm" class="active">
+            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" required>
+            <input type="password" id="loginPassword" placeholder="كلمة المرور" required>
+            <button type="submit">تسجيل الدخول</button>
+            <p class="form-msg" id="loginError"></p>
+        </form>
+        <!-- Signup Form -->
+        <form id="signupForm">
+            <input type="email" id="signupEmail" placeholder="البريد الإلكتروني" required>
+            <input type="password" id="signupPassword" placeholder="كلمة المرور" required>
+            <input type="password" id="signupConfirmPassword" placeholder="تأكيد كلمة المرور" required>
+            <button type="submit">إنشاء حساب</button>
+            <p class="form-msg" id="signupError"></p>
+        </form>
+        <div class="toggle-links">
+            <span id="toSignup">ليس لديك حساب؟ أنشئ حساب</span>
+            <span id="toLogin" style="display:none;">لديك حساب؟ تسجيل الدخول</span>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules from CDN
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js';
+        import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: 'AIzaSyD8t8mNgxRq0Kivx55VTGQRrZCZU40QS1g',
+            authDomain: 'taqwa-1090d.firebaseapp.com',
+            databaseURL: 'https://taqwa-1090d-default-rtdb.firebaseio.com',
+            projectId: 'taqwa-1090d',
+            storageBucket: 'taqwa-1090d.firebasestorage.app',
+            messagingSenderId: '592345552776',
+            appId: '1:592345552776:web:beb884c5b844a4275ccc3d',
+            measurementId: 'G-09H2NHZWGG'
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // DOM Elements
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const formTitle = document.getElementById('formTitle');
+        const toSignup = document.getElementById('toSignup');
+        const toLogin = document.getElementById('toLogin');
+        const loginError = document.getElementById('loginError');
+        const signupError = document.getElementById('signupError');
+
+        // Toggle forms
+        toSignup.addEventListener('click', () => {
+            loginForm.classList.remove('active');
+            signupForm.classList.add('active');
+            formTitle.textContent = 'إنشاء حساب';
+            toSignup.style.display = 'none';
+            toLogin.style.display = 'inline';
+            loginError.textContent = '';
+            signupError.textContent = '';
+        });
+        toLogin.addEventListener('click', () => {
+            signupForm.classList.remove('active');
+            loginForm.classList.add('active');
+            formTitle.textContent = 'تسجيل الدخول';
+            toLogin.style.display = 'none';
+            toSignup.style.display = 'inline';
+            loginError.textContent = '';
+            signupError.textContent = '';
+        });
+
+        // Handle signup
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            signupError.textContent = '';
+            // Validate password match
+            if (password !== confirmPassword) {
+                signupError.textContent = 'كلمتا المرور غير متطابقتين.';
+                return;
+            }
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                // Store user info in Realtime Database
+                await set(ref(db, 'users/' + user.uid), { email: user.email });
+                alert('تم إنشاء الحساب بنجاح. يمكنك الآن تسجيل الدخول.');
+                signupForm.reset();
+                // Switch to login form
+                toLogin.click();
+            } catch (error) {
+                // Handle errors
+                const errMsg = error.message;
+                signupError.textContent = 'حدث خطأ: ' + errMsg;
+            }
+        });
+
+        // Handle login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            loginError.textContent = '';
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                // Successful login
+                alert('تم تسجيل الدخول بنجاح');
+                // Redirect to home page or another page
+                window.location.href = 'index.html';
+            } catch (error) {
+                loginError.textContent = 'بيانات الدخول غير صحيحة أو لا يوجد حساب بهذا البريد.';
+            }
+        });
+
+    </script>
+</body>
+</html>
