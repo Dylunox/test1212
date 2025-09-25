@@ -12,7 +12,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
+    <!-- Toastify Notifications -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
     <style>
+        /* Global styles */
         body {
             font-family: 'Tajawal', sans-serif;
             margin: 0;
@@ -21,58 +26,74 @@
             background: linear-gradient(135deg, #1e3a8a, #ca8a04);
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             color: #1e293b;
+            padding: 40px 15px;
         }
+        /* Container for auth forms */
         .auth-container {
             width: 100%;
-            max-width: 400px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 40px 30px;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.97);
+            padding: 40px 35px 30px;
             border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
             backdrop-filter: blur(10px);
+            position: relative;
         }
+        /* Dark mode support */
         body.dark-mode .auth-container {
-            background: rgba(30, 41, 59, 0.95);
+            background: rgba(30, 41, 59, 0.97);
             color: #e2e8f0;
         }
+        /* Header title */
         h2 {
             text-align: center;
-            margin-bottom: 20px;
+            margin: 0 0 25px;
             font-family: 'Amiri', serif;
+            font-size: 2rem;
+            font-weight: 700;
             color: #1e3a8a;
         }
         body.dark-mode h2 {
             color: #60a5fa;
         }
+        /* Form visibility */
         form {
             display: none;
         }
         form.active {
             display: block;
         }
+        /* Input fields */
         .auth-container input {
             width: 100%;
             padding: 14px 18px;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.3s ease;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: white;
         }
         .auth-container input:focus {
             border-color: #ca8a04;
-            box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.1);
+            box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15);
         }
+        body.dark-mode .auth-container input {
+            background: #334155;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+        /* Buttons */
         .auth-container button {
             width: 100%;
             padding: 14px;
             border: none;
             border-radius: 12px;
             background: linear-gradient(135deg, #ca8a04, #f59e0b);
-            color: white;
+            color: #ffffff;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
@@ -80,32 +101,44 @@
         }
         .auth-container button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(202, 138, 4, 0.3);
+            box-shadow: 0 8px 24px rgba(202, 138, 4, 0.35);
         }
+        body.dark-mode .auth-container button {
+            background: linear-gradient(135deg, #60a5fa, #1e3a8a);
+        }
+        /* Message area for errors / success */
         .form-msg {
             min-height: 20px;
             font-size: 0.9rem;
             color: #dc2626;
-            margin-top: -10px;
-            margin-bottom: 10px;
+            margin: -12px 0 12px;
         }
         body.dark-mode .form-msg {
             color: #f87171;
         }
+        /* Toggle links */
         .toggle-links {
             text-align: center;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         .toggle-links span {
             color: #1e3a8a;
             cursor: pointer;
             font-weight: 600;
+            font-size: 0.95rem;
         }
         body.dark-mode .toggle-links span {
             color: #60a5fa;
         }
         .toggle-links span:hover {
             text-decoration: underline;
+        }
+        /* Success toast styling */
+        .toast-success {
+            color: #16a34a;
+        }
+        .toast-error {
+            color: #dc2626;
         }
     </style>
 </head>
@@ -136,7 +169,7 @@
     <script type="module">
         // Import Firebase modules from CDN
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
-        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics.js';
+        // We intentionally omit analytics import to avoid the "auth/configuration-not-found" error
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js';
         import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js';
 
@@ -154,7 +187,7 @@
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
+        // Do not call getAnalytics here. It may throw auth/configuration-not-found if analytics isn't configured.
         const auth = getAuth(app);
         const db = getDatabase(app);
 
@@ -202,15 +235,37 @@
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                // Store user info in Realtime Database
-                await set(ref(db, 'users/' + user.uid), { email: user.email });
-                alert('تم إنشاء الحساب بنجاح. يمكنك الآن تسجيل الدخول.');
+                // Store user basic info in Realtime Database; initialize settings and bookmarks for this user
+                await set(ref(db, 'users/' + user.uid), {
+                    email: user.email,
+                    settings: { theme: 'light', readingMode: false },
+                    bookmarks: []
+                });
+                // Show success message
+                signupError.textContent = '';
+                Toastify({
+                    text: 'تم إنشاء الحساب بنجاح. يمكنك الآن تسجيل الدخول.',
+                    duration: 4000,
+                    gravity: 'top',
+                    position: 'right',
+                    style: { background: '#16a34a' }
+                }).showToast();
+                // Reset form fields
                 signupForm.reset();
-                // Switch to login form
-                toLogin.click();
+                // Switch to login form after a short delay
+                setTimeout(() => {
+                    toLogin.click();
+                }, 500);
             } catch (error) {
-                // Handle errors
-                const errMsg = error.message;
+                // Handle errors gracefully
+                let errMsg = error.message || '';
+                if (errMsg.includes('email-already-in-use')) {
+                    errMsg = 'البريد الإلكتروني مستخدم بالفعل.';
+                } else if (errMsg.includes('weak-password')) {
+                    errMsg = 'كلمة المرور ضعيفة. يرجى اختيار كلمة مرور أقوى.';
+                } else if (errMsg.includes('invalid-email')) {
+                    errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
+                }
                 signupError.textContent = 'حدث خطأ: ' + errMsg;
             }
         });
@@ -222,13 +277,30 @@
             const password = document.getElementById('loginPassword').value;
             loginError.textContent = '';
             try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                // Successful login
-                alert('تم تسجيل الدخول بنجاح');
-                // Redirect to home page or another page
-                window.location.href = 'index.html';
+                await signInWithEmailAndPassword(auth, email, password);
+                // On successful login redirect to index
+                Toastify({
+                    text: 'تم تسجيل الدخول بنجاح',
+                    duration: 2500,
+                    gravity: 'top',
+                    position: 'right',
+                    style: { background: '#16a34a' }
+                }).showToast();
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 800);
             } catch (error) {
-                loginError.textContent = 'بيانات الدخول غير صحيحة أو لا يوجد حساب بهذا البريد.';
+                let errMsg = error.message || '';
+                if (errMsg.includes('auth/user-not-found')) {
+                    errMsg = 'لا يوجد حساب بهذا البريد.';
+                } else if (errMsg.includes('wrong-password')) {
+                    errMsg = 'كلمة المرور غير صحيحة.';
+                } else if (errMsg.includes('invalid-email')) {
+                    errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
+                } else {
+                    errMsg = 'بيانات الدخول غير صحيحة أو حدث خطأ. حاول مرة أخرى.';
+                }
+                loginError.textContent = errMsg;
             }
         });
 
