@@ -1634,6 +1634,23 @@
         <div class="fatwas-grid" id="fatwasGrid"></div>
     </div>
 
+    <!-- قسم الفتوى العشوائية -->
+    <section class="random-fatwa-section">
+        <h2 class="section-title">فتوى عشوائية</h2>
+        <div id="randomFatwaContainer" class="fatwas-grid"></div>
+        <div style="text-align:center; margin-top: 20px;">
+            <button class="show-more-btn" onclick="displayRandomFatwa()">
+                <i class="fas fa-random"></i>
+                فتوى أخرى
+            </button>
+        </div>
+    </section>
+
+    <!-- قسم الاقتباس اليومي -->
+    <div class="quote-section">
+        <p id="quoteText"></p>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
@@ -1674,7 +1691,14 @@
         </div>
     </nav>
 
+    </nav>
+
     </div> <!-- End Main Content -->
+
+    <!-- زر العودة لأعلى الصفحة -->
+    <button id="scrollTopBtn" class="scroll-top-btn" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
     <!-- Search Results Page -->
     <div id="searchResultsPage" class="search-results-page" style="display: none;">
@@ -1718,6 +1742,54 @@
         const FATWA_CACHE_KEY = 'fatwaDataCache';
         const FATWA_CACHE_TIMESTAMP_KEY = 'fatwaDataTimestamp';
 
+        // مجموعة من الاقتباسات اليومية للتذكير بذكر الله
+        const dailyQuotes = [
+            'يَا أَيُّهَا الَّذِينَ آمَنُوا اتَّقُوا اللَّهَ',
+            'إِنَّ اللَّهَ كَانَ عَلَيْكُمْ رَقِيبًا',
+            'أَلا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ',
+            'وَقُلْ رَبِّ زِدْنِي عِلْمًا',
+            'إِنَّ اللَّهَ يُحِبُّ الْمُحْسِنِينَ'
+        ];
+
+        // عرض اقتباس يومي عشوائي
+        function displayDailyQuote() {
+            const quoteEl = document.getElementById('quoteText');
+            if (quoteEl) {
+                const randomIndex = Math.floor(Math.random() * dailyQuotes.length);
+                quoteEl.textContent = dailyQuotes[randomIndex];
+            }
+        }
+
+        // عرض فتوى عشوائية من المكتبة
+        function displayRandomFatwa() {
+            try {
+                let allFatwas = [];
+                Object.keys(fatwaData).forEach(category => {
+                    fatwaData[category].forEach((f, idx) => {
+                        allFatwas.push({ ...f, category: category, id: `${category}-${idx}` });
+                    });
+                });
+                if (allFatwas.length === 0) return;
+                const randomIndex = Math.floor(Math.random() * allFatwas.length);
+                const randomFatwa = allFatwas[randomIndex];
+                const container = document.getElementById('randomFatwaContainer');
+                if (container) {
+                    container.innerHTML = '';
+                    const card = createFatwaCard(randomFatwa);
+                    container.appendChild(card);
+                    // تحديث حالة الأزرار للمحفوظات داخل البطاقة
+                    updateBookmarkButtons();
+                }
+            } catch (e) {
+                console.error('خطأ في عرض الفتوى العشوائية:', e);
+            }
+        }
+
+        // دالة للتمرير لأعلى الصفحة بسلاسة
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             console.log('تم تحميل الصفحة - بدء التهيئة');
@@ -1731,6 +1803,9 @@
             
             // تحميل البيانات فوراً عند فتح الموقع
             loadFatwaData();
+
+            // عرض اقتباس يومي عند تحميل الصفحة
+            displayDailyQuote();
             
             setupEventListeners();
             
@@ -1904,6 +1979,8 @@
                             console.log('تم تحميل البيانات من التخزين المؤقت');
                             populateCategories();
                             displayFatwas();
+                            // عرض فتوى عشوائية عند استخدام البيانات من التخزين المؤقت
+                            displayRandomFatwa();
                             setTimeout(() => {
                                 showMainContent();
                                 updateStats();
@@ -1993,6 +2070,8 @@
 
                 populateCategories();
                 displayFatwas();
+                // عرض فتوى عشوائية بعد تحميل البيانات
+                displayRandomFatwa();
                 
                 // إخفاء صفحة التحميل وإظهار المحتوى الرئيسي
                 setTimeout(() => {
@@ -2742,6 +2821,15 @@
             const progressBar = document.getElementById('progressBar');
             if (progressBar) {
                 progressBar.style.width = progress + '%';
+            }
+            // إظهار أو إخفاء زر العودة للأعلى بناءً على موضع التمرير
+            const scrollTopBtn = document.getElementById('scrollTopBtn');
+            if (scrollTopBtn) {
+                if (scrollTop > 300) {
+                    scrollTopBtn.classList.add('show');
+                } else {
+                    scrollTopBtn.classList.remove('show');
+                }
             }
         });
     </script>
