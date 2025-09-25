@@ -1,0 +1,2749 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="منصة المحراب - أكبر مكتبة فتاوى شرعية عُمانية بتصميم عصري وتفاعلي.">
+    <meta name="keywords" content="المحراب, فتاوى شرعية, عُمان, مكتبة دينية, فقه, عقيدة, معاملات">
+    <meta name="author" content="فريق المحراب">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#1e3a8a">
+    <title>منصة المحراب - مكتبة الفتاوى الشرعية (نسخة تجريبية)</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/8CPf69hS/IMG-4113.jpg">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- XLSX.js for Excel Parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- AOS for Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Toastify for Notifications -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <!-- html2canvas for sharing -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+        /* Reset Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #1e293b;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+        }
+
+        body.reading-mode {
+            font-size: 1.3em;
+            background: #ffffff;
+        }
+
+        body.dark-mode.reading-mode {
+            background: #1e293b;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(30, 58, 138, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 15px 20px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-family: 'Amiri', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-decoration: none;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .beta-badge {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        .report-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: white;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            position: relative;
+        }
+
+        .report-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .report-btn::after {
+            content: 'إبلاغ عن مشكلة';
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .report-btn:hover::after {
+            opacity: 1;
+        }
+
+        .navbar-actions button {
+            background: linear-gradient(135deg, #ca8a04, #f59e0b);
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: white;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(202, 138, 4, 0.3);
+        }
+
+        .navbar-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(202, 138, 4, 0.4);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: #e0f2fe;
+            z-index: 1001;
+        }
+
+        .progress-bar {
+            width: 0;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3a8a, #ca8a04);
+            transition: width 0.4s ease;
+        }
+
+        body.dark-mode .progress-container {
+            background: #1e293b;
+        }
+
+        body.dark-mode .progress-bar {
+            background: linear-gradient(135deg, #60a5fa, #1e3a8a);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            position: relative;
+            height: 500px;
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(202, 138, 4, 0.8)), 
+                        url('https://i.postimg.cc/1zxGLZgB/IMG-5877.png') center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            margin-top: 80px;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 0 20px;
+        }
+
+        .hero-content h1 {
+            font-family: 'Amiri', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero-content p {
+            font-size: 1.4rem;
+            margin-bottom: 30px;
+            opacity: 0.95;
+            animation: fadeInUp 1s ease 0.2s both;
+            line-height: 1.8;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .stat-item {
+            text-align: center;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .cta-btn {
+            background: linear-gradient(135deg, #ca8a04, #f59e0b);
+            border: none;
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(202, 138, 4, 0.4);
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(202, 138, 4, 0.5);
+        }
+
+        /* Search Section */
+        .search-section {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        body.dark-mode .search-section {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-section h2 {
+            font-family: 'Amiri', serif;
+            font-size: 2.5rem;
+            color: #1e3a8a;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        body.dark-mode .search-section h2 {
+            color: #60a5fa;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px 80px 20px 25px;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 1.3rem;
+            background: white;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-input:focus {
+            border-color: #ca8a04;
+            box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.1);
+        }
+
+        body.dark-mode .search-input {
+            background: #334155;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        .voice-btn {
+            position: absolute;
+            right: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #ca8a04, #f59e0b);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .voice-btn.listening {
+            animation: pulse 1s infinite;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: #64748b;
+        }
+
+        .filters {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            border-color: #ca8a04;
+            outline: none;
+        }
+
+        body.dark-mode .filter-select {
+            background: #334155;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        .search-results-count {
+            font-size: 1rem;
+            color: #64748b;
+            margin-top: 20px;
+        }
+
+        body.dark-mode .search-results-count {
+            color: #94a3b8;
+        }
+
+        /* Burger Menu */
+        .burger-menu {
+            position: fixed;
+            top: 80px;
+            right: -300px;
+            width: 250px;
+            height: calc(100vh - 80px);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 999;
+            transition: right 0.3s ease;
+        }
+
+        .burger-menu.active {
+            right: 0;
+        }
+
+        body.dark-mode .burger-menu {
+            background: rgba(30, 41, 59, 0.95);
+        }
+
+        .burger-menu h2 {
+            font-family: 'Amiri', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 20px;
+        }
+
+        body.dark-mode .burger-menu h2 {
+            color: #60a5fa;
+        }
+
+        .burger-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .burger-menu-item:hover {
+            background: #e0f2fe;
+        }
+
+        body.dark-mode .burger-menu-item:hover {
+            background: #334155;
+        }
+
+        .burger-menu-item i {
+            font-size: 1.3rem;
+            color: #ca8a04;
+        }
+
+        body.dark-mode .burger-menu-item i {
+            color: #60a5fa;
+        }
+
+        .burger-menu-item span {
+            font-size: 1.1rem;
+            color: #1e3a8a;
+        }
+
+        body.dark-mode .burger-menu-item span {
+            color: #e2e8f0;
+        }
+
+        /* Fatwas Grid */
+        .fatwas-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .section-title {
+            font-family: 'Amiri', serif;
+            font-size: 2.5rem;
+            text-align: center;
+            color: #1e3a8a;
+            margin-bottom: 40px;
+            font-weight: 700;
+        }
+
+        body.dark-mode .section-title {
+            color: #60a5fa;
+        }
+
+        .fatwas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .fatwa-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .fatwa-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #1e3a8a, #ca8a04);
+        }
+
+        .fatwa-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        body.dark-mode .fatwa-card {
+            background: #1e293b;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .bookmark-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #ca8a04;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bookmark-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .bookmark-btn.bookmarked {
+            color: #dc2626;
+        }
+
+        .fatwa-question {
+            font-family: 'Amiri', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        body.dark-mode .fatwa-question {
+            color: #60a5fa;
+        }
+
+        .fatwa-answer {
+            color: #475569;
+            margin-bottom: 20px;
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+
+        body.dark-mode .fatwa-answer {
+            color: #94a3b8;
+        }
+
+        .fatwa-source {
+            font-size: 0.95rem;
+            color: #64748b;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        body.dark-mode .fatwa-source {
+            color: #94a3b8;
+        }
+
+        .fatwa-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .print-btn { background: linear-gradient(135deg, #059669, #047857); }
+        .share-btn { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+        .like-btn { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+
+
+
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid #e2e8f0;
+            display: none;
+            justify-content: space-around;
+            padding: 15px 0;
+            z-index: 1000;
+        }
+
+        body.dark-mode .bottom-nav {
+            background: rgba(30, 41, 59, 0.95);
+            border-top-color: #374151;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 5px;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .nav-item span {
+            font-size: 0.75rem;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover {
+            color: #1e3a8a;
+            transform: translateY(-2px);
+        }
+
+        body.dark-mode .nav-item {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .nav-item:hover {
+            color: #60a5fa;
+        }
+
+        /* Report Button in Bottom Nav */
+        .report-nav-item {
+            position: relative;
+        }
+
+        .report-nav-item i {
+            color: #ef4444 !important;
+            animation: pulse 2s infinite;
+        }
+
+        .report-nav-item span {
+            color: #ef4444 !important;
+            font-weight: 600;
+        }
+
+        body.dark-mode .report-nav-item i {
+            color: #f87171 !important;
+        }
+
+        body.dark-mode .report-nav-item span {
+            color: #f87171 !important;
+        }
+
+        .report-nav-item:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 10px;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            transform: translateX(100%);
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        body.dark-mode .notification {
+            background: #1e293b;
+            border-color: #374151;
+            color: #e2e8f0;
+        }
+
+        /* Loader */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #ca8a04;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.1); }
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3a8a 0%, #ca8a04 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+        }
+
+        .loading-content {
+            text-align: center;
+            max-width: 400px;
+            padding: 40px;
+        }
+
+        .mosque-icon {
+            font-size: 5rem;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        .loading-content h1 {
+            font-family: 'Amiri', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-content p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .loading-animation {
+            margin-top: 30px;
+        }
+
+        .loading-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .loading-dots span {
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            animation: loadingDots 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        .loading-text {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        @keyframes loadingDots {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Category View */
+        .category-view {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding-top: 80px;
+        }
+
+        body.dark-mode .category-view {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .category-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 30px 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .category-header {
+            background: rgba(30, 41, 59, 0.95);
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #ca8a04, #f59e0b);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(202, 138, 4, 0.4);
+        }
+
+        .category-header h1 {
+            font-family: 'Amiri', serif;
+            font-size: 2.5rem;
+            color: #1e3a8a;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        body.dark-mode .category-header h1 {
+            color: #60a5fa;
+        }
+
+        .category-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .fatwas-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 25px;
+            }
+            
+            .search-section {
+                margin: 40px auto;
+                padding: 30px 15px;
+            }
+        }
+
+        /* Features Section */
+        .features-section {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        body.dark-mode .feature-card {
+            background: #1e293b;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            color: #ca8a04;
+            margin-bottom: 20px;
+        }
+
+        body.dark-mode .feature-icon {
+            color: #60a5fa;
+        }
+
+        .feature-title {
+            font-family: 'Amiri', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 15px;
+        }
+
+        body.dark-mode .feature-title {
+            color: #60a5fa;
+        }
+
+        .feature-description {
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        body.dark-mode .feature-description {
+            color: #94a3b8;
+        }
+
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #1e3a8a, #ca8a04);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer h3 {
+            font-family: 'Amiri', serif;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .footer p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-link:hover {
+            opacity: 0.8;
+        }
+
+        .copyright {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        /* Expand Button */
+        .expand-btn {
+            background: linear-gradient(135deg, #1e3a8a, #ca8a04);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            width: fit-content;
+        }
+
+        .expand-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+        }
+
+        .expand-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .expand-btn.expanded i {
+            transform: rotate(180deg);
+        }
+
+        body.dark-mode .expand-btn {
+            background: linear-gradient(135deg, #60a5fa, #1e3a8a);
+        }
+
+        /* Show More Button */
+        .show-more-container {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .show-more-btn {
+            background: linear-gradient(135deg, #ca8a04, #f59e0b);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(202, 138, 4, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .show-more-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(202, 138, 4, 0.4);
+        }
+
+        body.dark-mode .show-more-btn {
+            background: linear-gradient(135deg, #60a5fa, #1e3a8a);
+            box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3);
+        }
+
+        body.dark-mode .show-more-btn:hover {
+            box-shadow: 0 12px 35px rgba(96, 165, 250, 0.4);
+        }
+
+        /* Search Results Page */
+        .search-results-page {
+            min-height: 100vh;
+            padding-top: 100px;
+            background: inherit;
+        }
+
+        .search-results-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 30px;
+            text-align: center;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #1e3a8a, #ca8a04);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
+        }
+
+        .search-results-title {
+            font-family: 'Amiri', serif;
+            font-size: 2.5rem;
+            color: #1e3a8a;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        body.dark-mode .search-results-title {
+            color: #60a5fa;
+        }
+
+        .search-results-info {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        body.dark-mode .search-results-info {
+            color: #94a3b8;
+        }
+
+        .search-results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        body.dark-mode .back-btn {
+            background: linear-gradient(135deg, #60a5fa, #1e3a8a);
+        }
+
+        /* No Results Message */
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+            grid-column: 1 / -1;
+        }
+
+        .no-results h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #1e3a8a;
+        }
+
+        .no-results p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        body.dark-mode .no-results {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .no-results h3 {
+            color: #60a5fa;
+        }
+
+        @media (max-width: 768px) {
+            .bottom-nav { display: flex; }
+            body { padding-bottom: 80px; }
+            .navbar { display: none; }
+            .hero-section { 
+                margin-top: 0; 
+                height: 400px;
+                padding: 0 15px;
+            }
+            
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-content p {
+                font-size: 1.2rem;
+            }
+
+            .hero-stats {
+                gap: 20px;
+                flex-wrap: wrap;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.9rem;
+            }
+
+            .features-section {
+                margin: 40px auto;
+                padding: 0 15px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .feature-card {
+                padding: 25px;
+            }
+
+            .feature-icon {
+                font-size: 2.5rem;
+            }
+
+            .feature-title {
+                font-size: 1.3rem;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .footer h3 {
+                font-size: 1.5rem;
+            }
+
+            .footer p {
+                font-size: 1rem;
+            }
+
+            .show-more-btn {
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+
+            .expand-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .search-section {
+                margin: 30px auto;
+                padding: 25px 15px;
+            }
+            
+            .search-section h2 {
+                font-size: 2rem;
+            }
+            
+            .search-input {
+                padding: 18px 70px 18px 20px;
+                font-size: 1.1rem;
+            }
+            
+            .filters {
+                gap: 15px;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .filter-select {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .fatwas-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .fatwa-card {
+                padding: 25px;
+            }
+            
+            .category-header {
+                padding: 20px 15px;
+            }
+            
+            .category-header h1 {
+                font-size: 2rem;
+            }
+            
+            .loading-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .loading-content p {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            
+            .hero-content p {
+                font-size: 1rem;
+            }
+
+            .hero-stats {
+                gap: 15px;
+                margin-top: 20px;
+            }
+
+            .stat-number {
+                font-size: 1.3rem;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+
+            .show-more-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .expand-btn {
+                padding: 5px 10px;
+                font-size: 0.75rem;
+            }
+
+            .back-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .search-results-title {
+                font-size: 2rem;
+            }
+
+            .search-results-info {
+                font-size: 1rem;
+            }
+
+            .nav-item span {
+                font-size: 0.7rem;
+            }
+
+            .nav-item i {
+                font-size: 1.1rem;
+            }
+
+            .nav-item {
+                padding: 6px 3px;
+            }
+            
+            .cta-btn {
+                padding: 15px 30px;
+                font-size: 1.1rem;
+            }
+            
+            .search-section h2 {
+                font-size: 1.8rem;
+            }
+            
+            .search-input {
+                padding: 15px 60px 15px 15px;
+                font-size: 1rem;
+            }
+            
+            .voice-btn {
+                right: 50px;
+                width: 35px;
+                height: 35px;
+            }
+            
+            .search-icon {
+                right: 15px;
+                font-size: 1.3rem;
+            }
+            
+            .fatwa-card {
+                padding: 20px;
+            }
+            
+            .fatwa-card h3 {
+                font-size: 1.3rem;
+            }
+            
+            .fatwa-card p {
+                font-size: 0.95rem;
+            }
+            
+            .loading-content {
+                padding: 20px;
+            }
+            
+            .mosque-icon {
+                font-size: 4rem;
+            }
+            
+            .loading-content h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-item span {
+                font-size: 0.65rem;
+            }
+
+            .nav-item i {
+                font-size: 1rem;
+            }
+
+            .nav-item {
+                padding: 5px 2px;
+            }
+
+            .bottom-nav {
+                padding: 10px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Beta Version Banner -->
+    <div style="background: linear-gradient(135deg, #f59e0b, #ca8a04); color: white; text-align: center; padding: 8px 0; font-size: 0.9rem; font-weight: 500;">
+        🚀 النسخة التجريبية - نرحب بملاحظاتكم لتطوير الموقع
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div style="display: flex; align-items: center;">
+            <a href="#" class="logo">المحراب</a>
+            <span class="beta-badge">نسخة تجريبية</span>
+        </div>
+        <div class="navbar-actions">
+            <button class="report-btn" onclick="reportIssue()" title="إبلاغ عن مشكلة">
+                <i class="fas fa-exclamation-triangle"></i>
+            </button>
+            <button onclick="toggleBurgerMenu()" title="القائمة">
+                <i class="fas fa-bars"></i>
+            </button>
+            <button onclick="toggleTheme()" title="تبديل الوضع">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button onclick="toggleReadingMode()" title="وضع القراءة">
+                <i class="fas fa-book-reader"></i>
+            </button>
+            <button onclick="showBookmarks()" title="المحفوظات">
+                <i class="fas fa-bookmark"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="mosque-icon">
+                <i class="fas fa-mosque"></i>
+            </div>
+            <h1>منصة المحراب</h1>
+            <p>مكتبة الفتاوى الشرعية العُمانية</p>
+            <div class="loading-animation">
+                <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <p class="loading-text">جاري تحميل المكتبة...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content" style="display: none;">
+        <!-- Burger Menu -->
+        <div class="burger-menu" id="burgerMenu">
+            <h2>الأقسام</h2>
+            <div id="burgerMenuItems"></div>
+        </div>
+
+        <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>منصة المحراب</h1>
+            <p>أكبر مكتبة فتاوى شرعية عُمانية بتصميم عصري وتفاعلي</p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="totalFatwas">0</span>
+                    <span class="stat-label">فتوى شرعية</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="totalCategories">0</span>
+                    <span class="stat-label">قسم فقهي</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">24/7</span>
+                    <span class="stat-label">متاح دائماً</span>
+                </div>
+            </div>
+            <button class="cta-btn" onclick="focusSearch()">ابدأ البحث الآن</button>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <h2>ابحث في مكتبة الفتاوى</h2>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="ابحث عن فتوى...">
+            <button class="voice-btn" id="voiceBtn" onclick="startVoiceSearch()">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <i class="fas fa-search search-icon"></i>
+        </div>
+        <div class="filters">
+            <select id="categoryFilter" class="filter-select" onchange="performSearch()">
+                <option value="all">جميع الأقسام</option>
+            </select>
+            <select id="sortFilter" class="filter-select" onchange="displayFatwas()">
+                <option value="newest">الأحدث</option>
+                <option value="oldest">الأقدم</option>
+            </select>
+        </div>
+        <div id="searchResults" class="search-results-count"></div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <h2 class="section-title">مميزات منصة المحراب</h2>
+        <div class="features-grid">
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="feature-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="feature-title">بحث ذكي ومتطور</h3>
+                <p class="feature-description">ابحث بسهولة في آلاف الفتاوى باستخدام كلمات مفتاحية أو عبارات جزئية</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="feature-title">متوافق مع جميع الأجهزة</h3>
+                <p class="feature-description">تصميم متجاوب يعمل بسلاسة على الهواتف والأجهزة اللوحية وأجهزة الكمبيوتر</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="feature-icon">
+                    <i class="fas fa-bookmark"></i>
+                </div>
+                <h3 class="feature-title">حفظ ومشاركة</h3>
+                <p class="feature-description">احفظ الفتاوى المهمة وشاركها مع الآخرين بسهولة</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+                <div class="feature-icon">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <h3 class="feature-title">الوضع الليلي</h3>
+                <p class="feature-description">وضع مظلم مريح للعينين للقراءة في الإضاءة المنخفضة</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
+                <div class="feature-icon">
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <h3 class="feature-title">البحث الصوتي</h3>
+                <p class="feature-description">ابحث باستخدام صوتك بدلاً من الكتابة</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="600">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="feature-title">مصادر موثوقة</h3>
+                <p class="feature-description">جميع الفتاوى من مصادر شرعية معتمدة وموثوقة</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fatwas Container -->
+    <div class="fatwas-container">
+        <h2 class="section-title" id="sectionTitle">أحدث الفتاوى</h2>
+        <div class="fatwas-grid" id="fatwasGrid"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>منصة المحراب</h3>
+            <p>أكبر مكتبة فتاوى شرعية عُمانية بتصميم عصري وتفاعلي</p>
+            <div class="footer-links">
+                <a href="#" class="footer-link" onclick="reportIssue()">الإبلاغ عن مشكلة</a>
+                <a href="#" class="footer-link" onclick="focusSearch()">البحث</a>
+                <a href="#" class="footer-link" onclick="showBookmarks()">المحفوظات</a>
+            </div>
+            <div class="copyright">
+                © 2024 منصة المحراب للفتاوى الشرعية - جميع الحقوق محفوظة
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item" onclick="focusSearch()">
+            <i class="fas fa-search"></i>
+            <span>البحث</span>
+        </div>
+        <div class="nav-item" onclick="showLatest()">
+            <i class="fas fa-clock"></i>
+            <span>الأحدث</span>
+        </div>
+        <div class="nav-item" onclick="showCategories()">
+            <i class="fas fa-th-large"></i>
+            <span>الأقسام</span>
+        </div>
+        <div class="nav-item" onclick="showBookmarks()">
+            <i class="fas fa-bookmark"></i>
+            <span>المحفوظات</span>
+        </div>
+        <div class="nav-item report-nav-item" onclick="reportIssue()">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>إبلاغ</span>
+        </div>
+    </nav>
+
+    </div> <!-- End Main Content -->
+
+    <!-- Search Results Page -->
+    <div id="searchResultsPage" class="search-results-page" style="display: none;">
+        <div class="search-results-header">
+            <button class="back-btn" onclick="goBackToHome()">
+                <i class="fas fa-arrow-right"></i>
+                العودة للصفحة الرئيسية
+            </button>
+            <h2 class="search-results-title" id="searchResultsTitle">نتائج البحث</h2>
+            <div class="search-results-info" id="searchResultsInfo"></div>
+        </div>
+        
+        <div class="search-results-container">
+            <div class="fatwas-grid" id="searchResultsGrid"></div>
+        </div>
+    </div>
+
+    <!-- Category View -->
+    <div id="categoryView" class="category-view" style="display: none;">
+        <div class="category-header">
+            <button class="back-btn" onclick="goBackToHome()">
+                <i class="fas fa-arrow-right"></i>
+                العودة للرئيسية
+            </button>
+            <h1 id="categoryTitle">القسم</h1>
+        </div>
+        <div class="category-content">
+            <div id="categoryFatwas" class="fatwas-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let fatwaData = {};
+        let bookmarkedFatwas = JSON.parse(localStorage.getItem('bookmarkedFatwas')) || [];
+        let recognition;
+        let currentView = 'latest';
+        let currentCategory = null;
+
+        // Constants for caching fatwa data locally
+        const FATWA_CACHE_KEY = 'fatwaDataCache';
+        const FATWA_CACHE_TIMESTAMP_KEY = 'fatwaDataTimestamp';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('تم تحميل الصفحة - بدء التهيئة');
+            
+            // إظهار صفحة التحميل
+            showLoadingScreen();
+            
+            loadTheme();
+            loadBookmarks();
+            setupVoiceSearch();
+            
+            // تحميل البيانات فوراً عند فتح الموقع
+            loadFatwaData();
+            
+            setupEventListeners();
+            
+            console.log('تم إكمال التهيئة');
+        });
+
+        // Bookmarks Management
+        function loadBookmarks() {
+            try {
+                bookmarkedFatwas = JSON.parse(localStorage.getItem('bookmarkedFatwas')) || [];
+                console.log(`تم تحميل ${bookmarkedFatwas.length} فتوى محفوظة`);
+            } catch (error) {
+                console.error('خطأ في تحميل الفتاوى المحفوظة:', error);
+                bookmarkedFatwas = [];
+            }
+        }
+
+        // Theme Management
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const hour = new Date().getHours();
+            const isNight = hour < 6 || hour > 18;
+            
+            if (savedTheme === 'dark' || (!savedTheme && isNight)) {
+                document.body.classList.add('dark-mode');
+                const themeBtn = document.querySelector('.navbar-actions button[onclick="toggleTheme()"]');
+                if (themeBtn) {
+                    const icon = themeBtn.querySelector('i');
+                    if (icon) {
+                        icon.classList.replace('fa-moon', 'fa-sun');
+                    }
+                }
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const themeBtn = document.querySelector('.navbar-actions button[onclick="toggleTheme()"]');
+            const icon = themeBtn.querySelector('i');
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+
+        function toggleReadingMode() {
+            document.body.classList.toggle('reading-mode');
+            showNotification(document.body.classList.contains('reading-mode') ? 'تم تفعيل وضع القراءة' : 'تم إلغاء وضع القراءة');
+        }
+
+        function toggleBurgerMenu() {
+            document.getElementById('burgerMenu').classList.toggle('active');
+        }
+
+        // Voice Search
+        function setupVoiceSearch() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ar-SA';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('searchInput').value = transcript;
+                    performSearch();
+                    document.getElementById('voiceBtn').classList.remove('listening');
+                };
+
+                recognition.onerror = function() {
+                    document.getElementById('voiceBtn').classList.remove('listening');
+                    showNotification('خطأ في البحث الصوتي', 'error');
+                };
+            }
+        }
+
+        function startVoiceSearch() {
+            if (recognition) {
+                recognition.start();
+                document.getElementById('voiceBtn').classList.add('listening');
+                showNotification('اتحدث الآن...');
+            } else {
+                showNotification('البحث الصوتي غير مدعوم', 'error');
+            }
+        }
+
+
+
+        // Navigation Functions
+        function showLoadingScreen() {
+            document.getElementById('loadingScreen').style.display = 'flex';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('categoryView').style.display = 'none';
+        }
+
+        function showMainContent() {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('categoryView').style.display = 'none';
+            
+            // Initialize AOS after showing main content
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 800,
+                    easing: 'ease-in-out',
+                    once: true
+                });
+            }
+        }
+
+        function showCategoryView(categoryName) {
+            currentCategory = categoryName;
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('categoryView').style.display = 'block';
+            
+            // تحديث عنوان القسم
+            document.getElementById('categoryTitle').textContent = categoryName;
+            
+            // عرض فتاوى القسم
+            displayCategoryFatwas(categoryName);
+            
+            // التمرير لأعلى الصفحة
+            window.scrollTo(0, 0);
+        }
+
+        // نسخة قديمة من دالة العودة للصفحة الرئيسية (تم استبدالها بوظيفة موحدة لاحقاً)
+        function goBackToHomeLegacy() {
+            currentCategory = null;
+            showMainContent();
+            window.scrollTo(0, 0);
+        }
+
+        function displayCategoryFatwas(categoryName) {
+            const categoryFatwasContainer = document.getElementById('categoryFatwas');
+            const fatwas = fatwaData[categoryName] || [];
+            
+            if (fatwas.length === 0) {
+                categoryFatwasContainer.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                        <div style="background: white; border-radius: 20px; padding: 40px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);">
+                            <i class="fas fa-search" style="font-size: 3rem; color: #ca8a04; margin-bottom: 20px;"></i>
+                            <h3 style="font-family: 'Amiri', serif; font-size: 1.8rem; color: #1e3a8a; margin-bottom: 15px;">لا توجد فتاوى في هذا القسم</h3>
+                            <p style="color: #64748b;">سيتم إضافة المزيد من الفتاوى قريباً</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            categoryFatwasContainer.innerHTML = '';
+            fatwas.forEach(fatwa => {
+                const fatwaCard = createFatwaCard(fatwa, categoryName);
+                categoryFatwasContainer.appendChild(fatwaCard);
+            });
+        }
+
+        // Data Loading
+        async function loadFatwaData() {
+            // قبل جلب البيانات من Google Sheets، تحقق من التخزين المؤقت المحلي
+            try {
+                const cacheTimestamp = localStorage.getItem(FATWA_CACHE_TIMESTAMP_KEY);
+                const cachedRaw = localStorage.getItem(FATWA_CACHE_KEY);
+                if (cacheTimestamp && cachedRaw) {
+                    const age = Date.now() - parseInt(cacheTimestamp, 10);
+                    // إذا كانت البيانات المخزنة أقل من يوم واحد، استخدمها
+                    if (age < 24 * 60 * 60 * 1000) {
+                        const cachedData = JSON.parse(cachedRaw);
+                        if (cachedData && Object.keys(cachedData).length > 0) {
+                            fatwaData = cachedData;
+                            console.log('تم تحميل البيانات من التخزين المؤقت');
+                            populateCategories();
+                            displayFatwas();
+                            setTimeout(() => {
+                                showMainContent();
+                                updateStats();
+                                // حساب العدادات لإجمالي الفتاوى والأقسام
+                                let totalFatwasCount = 0;
+                                Object.keys(fatwaData).forEach(cat => {
+                                    totalFatwasCount += fatwaData[cat].length;
+                                });
+                                const totalCategoriesCount = Object.keys(fatwaData).length;
+                                document.getElementById('totalFatwas').textContent = totalFatwasCount;
+                                document.getElementById('totalCategories').textContent = totalCategoriesCount;
+                            }, 500);
+                            showNotification('تم تحميل البيانات من التخزين المؤقت');
+                            return;
+                        }
+                    }
+                }
+            } catch (cacheError) {
+                console.error('خطأ في قراءة التخزين المؤقت للفتاوى:', cacheError);
+            }
+            try {
+                console.log('بدء تحميل البيانات...');
+                
+                const excelUrl = 'https://docs.google.com/spreadsheets/d/1fQzzcSdUvYs5A4yKqgVJe_UjjG5i2yGc/export?format=xlsx';
+                const response = await fetch(excelUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`فشل في تحميل الملف - كود الخطأ: ${response.status} (${response.statusText})`);
+                }
+                
+                console.log('حجم الملف المحمل:', response.headers.get('content-length'), 'بايت');
+                
+                console.log('تم تحميل الملف بنجاح');
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                
+                console.log('أسماء الأوراق المتاحة:', workbook.SheetNames);
+                
+                fatwaData = {};
+                let totalFatwas = 0;
+                
+                workbook.SheetNames.forEach(sheetName => {
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    
+                    console.log(`ورقة "${sheetName}" تحتوي على ${jsonData.length} صف`);
+                    
+                    // Skip empty sheets or sheets with only headers
+                    if (jsonData.length <= 1) {
+                        console.log(`تم تخطي ورقة "${sheetName}" - فارغة أو تحتوي على العناوين فقط`);
+                        return;
+                    }
+                    
+                    const fatwas = jsonData.slice(1).map((row, index) => ({
+                        question: (row[1] || '').toString().trim(),  // العمود الثاني - السؤال
+                        answer: (row[2] || '').toString().trim(),    // العمود الثالث - الجواب
+                        details: (row[3] || '').toString().trim(),   // العمود الرابع - التفاصيل
+                        source: (row[4] || '').toString().trim(),    // العمود الخامس - المصدر
+                        date: row[5] ? new Date(row[5]) : new Date(), // العمود السادس - التاريخ
+                        priority: (row[6] || 'medium').toString().trim(), // العمود السابع - الأولوية
+                        id: `${sheetName}-${index}` // معرف فريد للفتوى
+                    })).filter(fatwa => fatwa.question && fatwa.answer);
+                    
+                    fatwaData[sheetName] = fatwas;
+                    totalFatwas += fatwas.length;
+                    console.log(`ورقة "${sheetName}" تحتوي على ${fatwas.length} فتوى صالحة`);
+                });
+
+                console.log(`تم تحميل ${totalFatwas} فتوى من ${Object.keys(fatwaData).length} قسم`);
+
+                // حفظ البيانات في التخزين المؤقت للاستفادة منها لاحقاً
+                try {
+                    localStorage.setItem(FATWA_CACHE_KEY, JSON.stringify(fatwaData));
+                    localStorage.setItem(FATWA_CACHE_TIMESTAMP_KEY, Date.now().toString());
+                } catch (storageError) {
+                    console.error('تعذر حفظ البيانات المؤقتة:', storageError);
+                }
+                
+                if (totalFatwas === 0) {
+                    throw new Error('لم يتم العثور على فتاوى صالحة في الملف');
+                }
+
+                populateCategories();
+                displayFatwas();
+                
+                // إخفاء صفحة التحميل وإظهار المحتوى الرئيسي
+                setTimeout(() => {
+                    showMainContent();
+
+                    // عدّاد متزايد ببطء عند فتح الموقع
+                    const fatwaEl = document.getElementById('totalFatwas');
+                    const catEl = document.getElementById('totalCategories');
+
+                    const animate = (el, target, duration = 2000) => {
+                        if (!el) return;
+                        const start = performance.now();
+                        const from = 0;
+                        const step = (now) => {
+                            const progress = Math.min((now - start) / duration, 1);
+                            const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+                            el.textContent = Math.floor(from + (target - from) * eased).toLocaleString('ar-EG');
+                            if (progress < 1) requestAnimationFrame(step);
+                        };
+                        requestAnimationFrame(step);
+                    };
+
+                    // العدد الإجمالي للفتاوى من البيانات
+                    animate(fatwaEl, totalFatwas, 2500);
+                    // عدد الأقسام الفقهية: يتم حسابه ديناميكياً من عدد الأوراق في الملف
+                    const totalCategoriesCount = Object.keys(fatwaData).length;
+                    animate(catEl, totalCategoriesCount, 1800);
+
+                    showNotification(`تم تحميل ${totalFatwas} فتوى من ${Object.keys(fatwaData).length} قسم بنجاح`);
+                }, 1500);
+                
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+                showNotification('فشل في تحميل البيانات من Google Sheets. يرجى التحقق من الاتصال بالإنترنت.', 'error');
+                
+                // عرض رسالة للمستخدم
+                fatwaData = {};
+                
+                // إظهار المحتوى الرئيسي مع رسالة الخطأ
+                setTimeout(() => {
+                    showMainContent();
+                    displayNoDataMessage();
+                }, 1000);
+                
+                // محاولة إعادة التحميل بعد 10 ثوانٍ
+                setTimeout(() => {
+                    console.log('محاولة إعادة تحميل البيانات...');
+                    showNotification('جاري إعادة المحاولة...');
+                    loadFatwaData();
+                }, 10000);
+
+                // حتى عند الفشل، اجعل العدادات تظهر بشكل جميل
+                setTimeout(() => {
+                    showMainContent();
+                    const fatwaEl = document.getElementById('totalFatwas');
+                    const catEl = document.getElementById('totalCategories');
+                    const animate = (el, target, duration = 2000) => {
+                        if (!el) return;
+                        const start = performance.now();
+                        const from = 0;
+                        const step = (now) => {
+                            const progress = Math.min((now - start) / duration, 1);
+                            const eased = 1 - Math.pow(1 - progress, 3);
+                            el.textContent = Math.floor(from + (target - from) * eased).toLocaleString('ar-EG');
+                            if (progress < 1) requestAnimationFrame(step);
+                        };
+                        requestAnimationFrame(step);
+                    };
+                    // افتراضياً صفر فتاوى عند الفشل، وعدد الأقسام 10 كما طلبت
+                    animate(fatwaEl, 0, 1200);
+                    animate(catEl, 10, 1800);
+                }, 1200);
+            }
+        }
+
+        // دالة لإعادة تحميل البيانات يدوياً
+        function reloadData() {
+            showLoadingScreen();
+            loadFatwaData();
+        }
+
+        // مسح البيانات المخزنة في التخزين المؤقت وإعادة التحميل
+        function clearCache() {
+            try {
+                localStorage.removeItem(FATWA_CACHE_KEY);
+                localStorage.removeItem(FATWA_CACHE_TIMESTAMP_KEY);
+                showNotification('تم مسح البيانات المؤقتة');
+            } catch (e) {
+                console.error('خطأ أثناء مسح البيانات المؤقتة:', e);
+            }
+            reloadData();
+        }
+
+
+
+        // دالة لعرض رسالة عدم توفر البيانات
+        function displayNoDataMessage() {
+            const grid = document.getElementById('fatwasGrid');
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                    <div style="background: white; border-radius: 20px; padding: 40px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08); max-width: 500px; margin: 0 auto;">
+                        <i class="fas fa-wifi" style="font-size: 4rem; color: #ca8a04; margin-bottom: 20px;"></i>
+                        <h3 style="font-family: 'Amiri', serif; font-size: 2rem; color: #1e3a8a; margin-bottom: 15px;">لا توجد بيانات متاحة</h3>
+                        <p style="color: #64748b; margin-bottom: 25px; line-height: 1.6;">
+                            فشل في تحميل الفتاوى من Google Sheets.<br>
+                            يرجى التحقق من الاتصال بالإنترنت.
+                        </p>
+                        <button onclick="reloadData()" style="background: linear-gradient(135deg, #ca8a04, #f59e0b); border: none; color: white; padding: 15px 30px; border-radius: 25px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease;">
+                            <i class="fas fa-sync-alt"></i> إعادة المحاولة
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('sectionTitle').textContent = 'خطأ في التحميل';
+            document.getElementById('searchResults').textContent = '';
+            
+            // تطبيق الوضع الليلي إذا كان مفعلاً
+            if (document.body.classList.contains('dark-mode')) {
+                const messageDiv = grid.querySelector('div > div');
+                messageDiv.style.background = '#1e293b';
+                messageDiv.style.color = '#e2e8f0';
+                const title = messageDiv.querySelector('h3');
+                title.style.color = '#60a5fa';
+            }
+        }
+
+        // Display Functions
+        function populateCategories() {
+            const categoryFilter = document.getElementById('categoryFilter');
+            categoryFilter.innerHTML = '<option value="all">جميع الأقسام</option>';
+            
+            const burgerMenuItems = document.getElementById('burgerMenuItems');
+            burgerMenuItems.innerHTML = '';
+            
+            const categoryIcons = {
+                'الفقه': 'fa-book-quran',
+                'العقيدة': 'fa-mosque',
+                'المعاملات': 'fa-handshake',
+                'الأخلاق': 'fa-heart',
+                'الحديث': 'fa-book',
+                'السيرة': 'fa-user'
+            };
+            
+            Object.keys(fatwaData).forEach(category => {
+                // Add to filter dropdown
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+                
+                // Add to burger menu
+                const item = document.createElement('div');
+                item.className = 'burger-menu-item';
+                const iconClass = categoryIcons[category] || 'fa-folder';
+                item.innerHTML = `
+                    <i class="fas ${iconClass}"></i>
+                    <span>${category}</span>
+                `;
+                item.addEventListener('click', () => {
+                    showCategoryView(category);
+                    toggleBurgerMenu();
+                });
+                burgerMenuItems.appendChild(item);
+            });
+            
+            // إضافة عناصر إضافية للقائمة
+            const additionalItems = [
+                {
+                    icon: 'fa-bookmark',
+                    text: 'الفتاوى المحفوظة',
+                    action: 'showBookmarks()'
+                },
+                {
+                    icon: 'fa-sync-alt',
+                    text: 'إعادة تحميل البيانات',
+                    action: 'reloadData()'
+                },
+                {
+                    icon: 'fa-trash',
+                    text: 'مسح البيانات المؤقتة',
+                    action: 'clearCache()'
+                }
+            ];
+            
+            additionalItems.forEach(itemData => {
+                const item = document.createElement('div');
+                item.className = 'burger-menu-item';
+                item.innerHTML = `
+                    <i class="fas ${itemData.icon}"></i>
+                    <span>${itemData.text}</span>
+                `;
+                item.addEventListener('click', () => {
+                    eval(itemData.action);
+                    toggleBurgerMenu();
+                });
+                burgerMenuItems.appendChild(item);
+            });
+        }
+
+        function displayFatwas(fatwasToShow = null, showAll = false) {
+            const grid = document.getElementById('fatwasGrid');
+            grid.innerHTML = '';
+
+            let allFatwas = [];
+            
+            if (fatwasToShow) {
+                allFatwas = fatwasToShow;
+            } else {
+                Object.keys(fatwaData).forEach(category => {
+                    fatwaData[category].forEach((fatwa, idx) => {
+                        allFatwas.push({ ...fatwa, category, id: `${category}-${idx}` });
+                    });
+                });
+            }
+
+            // Sort fatwas
+            const sortFilter = document.getElementById('sortFilter').value;
+            if (sortFilter === 'newest') {
+                allFatwas.sort((a, b) => new Date(b.date) - new Date(a.date));
+            } else if (sortFilter === 'oldest') {
+                allFatwas.sort((a, b) => new Date(a.date) - new Date(b.date));
+            }
+
+            // Limit to 10 fatwas on main page unless showAll is true
+            const fatwasToDisplay = showAll ? allFatwas : allFatwas.slice(0, 10);
+
+            fatwasToDisplay.forEach((fatwa, index) => {
+                const card = createFatwaCard(fatwa, index);
+                grid.appendChild(card);
+            });
+
+            // Add "Show More" button if there are more than 10 fatwas and not showing all
+            if (!showAll && allFatwas.length > 10) {
+                const showMoreBtn = document.createElement('div');
+                showMoreBtn.className = 'show-more-container';
+                showMoreBtn.innerHTML = `
+                    <button class="show-more-btn" onclick="displayFatwas(null, true)">
+                        <i class="fas fa-chevron-down"></i>
+                        عرض المزيد (${allFatwas.length - 10} فتوى إضافية)
+                    </button>
+                `;
+                grid.appendChild(showMoreBtn);
+            }
+
+            updateBookmarkButtons();
+            updateStats();
+            
+            // Refresh AOS animations
+            if (typeof AOS !== 'undefined') {
+                AOS.refresh();
+            }
+        }
+
+        function updateStats() {
+            let totalFatwas = 0;
+            Object.keys(fatwaData).forEach(category => {
+                totalFatwas += fatwaData[category].length;
+            });
+            
+            const totalCategories = Object.keys(fatwaData).length;
+            
+            document.getElementById('totalFatwas').textContent = totalFatwas;
+            document.getElementById('totalCategories').textContent = totalCategories;
+        }
+
+        function createFatwaCard(fatwa, categoryOrIndex) {
+            const card = document.createElement('div');
+            card.className = 'fatwa-card';
+            card.setAttribute('data-aos', 'fade-up');
+            card.setAttribute('data-aos-delay', (Math.random() * 600));
+            
+            const likes = JSON.parse(localStorage.getItem(`likes-${fatwa.id}`)) || 0;
+            const comments = JSON.parse(localStorage.getItem(`comments-${fatwa.id}`)) || [];
+
+            // Escape HTML to prevent XSS
+            const escapeHtml = (text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
+
+            const safeQuestion = escapeHtml(fatwa.question);
+            const safeAnswer = escapeHtml(fatwa.answer);
+            const safeSource = escapeHtml(fatwa.source || 'غير محدد');
+            const safeFatwaId = escapeHtml(fatwa.id);
+
+            // Check if answer is long (more than 300 characters)
+            const isLongAnswer = fatwa.answer.length > 300;
+            const truncatedAnswer = isLongAnswer ? fatwa.answer.substring(0, 300) + '...' : fatwa.answer;
+            const safeTruncatedAnswer = escapeHtml(truncatedAnswer);
+
+            card.innerHTML = `
+                <button class="bookmark-btn" data-fatwa-id="${safeFatwaId}" onclick="toggleBookmark('${safeFatwaId}')">
+                    <i class="fas fa-bookmark"></i>
+                </button>
+                
+                <div class="fatwa-question">${safeQuestion}</div>
+                <div class="fatwa-answer" id="answer-${safeFatwaId}">
+                    <div class="answer-preview">${safeTruncatedAnswer}</div>
+                    ${isLongAnswer ? `
+                        <div class="answer-full" style="display: none;">${safeAnswer}</div>
+                        <button class="expand-btn" onclick="toggleAnswerExpansion('${safeFatwaId}')">
+                            <i class="fas fa-chevron-down"></i> عرض كامل الفتوى
+                        </button>
+                    ` : ''}
+                </div>
+                <div class="fatwa-source">المصدر: ${safeSource}</div>
+                
+                <div class="fatwa-actions">
+                    <button class="action-btn copy-btn" onclick="copyFatwaText('${safeFatwaId}')">
+                        <i class="fas fa-copy"></i> نسخ
+                    </button>
+                    <button class="action-btn print-btn" onclick="printFatwa(this.closest('.fatwa-card'))">
+                        <i class="fas fa-print"></i> طباعة
+                    </button>
+                    <button class="action-btn share-btn" onclick="shareAsImage(this.closest('.fatwa-card'))">
+                        <i class="fas fa-share"></i> مشاركة
+                    </button>
+                    <button class="action-btn like-btn" onclick="toggleLike('${safeFatwaId}', this)">
+                        <i class="fas fa-heart"></i> <span class="like-count">${likes}</span>
+                    </button>
+                </div>
+                
+
+            `;
+
+            return card;
+        }
+
+        function toggleAnswerExpansion(fatwaId) {
+            const answerContainer = document.getElementById(`answer-${fatwaId}`);
+            const preview = answerContainer.querySelector('.answer-preview');
+            const full = answerContainer.querySelector('.answer-full');
+            const btn = answerContainer.querySelector('.expand-btn');
+            
+            if (full.style.display === 'none') {
+                // Show full answer
+                preview.style.display = 'none';
+                full.style.display = 'block';
+                btn.innerHTML = '<i class="fas fa-chevron-up"></i> إخفاء النص';
+                btn.classList.add('expanded');
+            } else {
+                // Show preview
+                preview.style.display = 'block';
+                full.style.display = 'none';
+                btn.innerHTML = '<i class="fas fa-chevron-down"></i> عرض كامل الفتوى';
+                btn.classList.remove('expanded');
+            }
+        }
+
+        // Search Functions
+        function setupEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            
+            // البحث عند الكتابة مع تأخير قصير
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(performSearch, 500);
+            });
+            
+            // البحث عند الضغط على Enter
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    clearTimeout(searchTimeout);
+                    performSearch();
+                }
+            });
+            
+            document.getElementById('categoryFilter').addEventListener('change', performSearch);
+            document.getElementById('sortFilter').addEventListener('change', () => {
+                // إذا كنا في صفحة نتائج البحث، نعيد البحث
+                if (document.getElementById('searchResultsPage').style.display === 'block') {
+                    performSearch();
+                } else {
+                    displayFatwas();
+                }
+            });
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const category = document.getElementById('categoryFilter').value;
+            
+            if (!query) {
+                goBackToHome();
+                return;
+            }
+
+            let results = [];
+            const searchTerms = query.split(' ').filter(term => term.length > 0);
+            
+            Object.keys(fatwaData).forEach(cat => {
+                if (category !== 'all' && cat !== category) return;
+                
+                fatwaData[cat].forEach((fatwa, idx) => {
+                    const questionText = fatwa.question.toLowerCase();
+                    const answerText = fatwa.answer.toLowerCase();
+                    const sourceText = fatwa.source ? fatwa.source.toLowerCase() : '';
+                    const detailsText = fatwa.details ? fatwa.details.toLowerCase() : '';
+                    
+                    const allText = `${questionText} ${answerText} ${sourceText} ${detailsText}`;
+                    
+                    // البحث المرن - يجب أن يحتوي على أي من الكلمات المفتاحية
+                    const hasMatch = searchTerms.some(term => {
+                        return allText.includes(term) ||
+                               questionText.includes(term) ||
+                               answerText.includes(term) ||
+                               // البحث الجزئي للكلمات
+                               allText.split(' ').some(word => 
+                                   word.includes(term) || 
+                                   term.includes(word) ||
+                                   (word.length > 2 && term.length > 2 && 
+                                    (word.startsWith(term.substring(0, 2)) || 
+                                     term.startsWith(word.substring(0, 2))))
+                               );
+                    });
+                    
+                    if (hasMatch) {
+                        // حساب درجة الصلة
+                        let relevance = 0;
+                        searchTerms.forEach(term => {
+                            if (questionText.includes(term)) relevance += 3;
+                            if (answerText.includes(term)) relevance += 2;
+                            if (sourceText.includes(term)) relevance += 1;
+                        });
+                        
+                        results.push({ 
+                            ...fatwa, 
+                            category: cat, 
+                            id: `${cat}-${idx}`,
+                            relevance: relevance
+                        });
+                    }
+                });
+            });
+
+            // ترتيب النتائج حسب الصلة
+            results.sort((a, b) => b.relevance - a.relevance);
+
+            // عرض نتائج البحث في صفحة منفصلة
+            showSearchResults(results, query, category);
+        }
+
+        function showSearchResults(results, query, category) {
+            // إخفاء الصفحة الرئيسية
+            document.querySelector('.hero-section').style.display = 'none';
+            document.querySelector('.search-section').style.display = 'none';
+            document.querySelector('.features-section').style.display = 'none';
+            document.querySelector('.fatwas-container').style.display = 'none';
+            document.querySelector('.footer').style.display = 'none';
+            
+            // إظهار صفحة نتائج البحث
+            const searchResultsPage = document.getElementById('searchResultsPage');
+            searchResultsPage.style.display = 'block';
+            
+            // تحديث عنوان النتائج
+            const searchResultsTitle = document.getElementById('searchResultsTitle');
+            searchResultsTitle.textContent = `نتائج البحث عن: "${query}"`;
+            
+            // تحديث معلومات النتائج
+            const searchResultsInfo = document.getElementById('searchResultsInfo');
+            const categoryText = category === 'all' ? 'جميع الأقسام' : category;
+            searchResultsInfo.innerHTML = `
+                تم العثور على <strong>${results.length}</strong> نتيجة في <strong>${categoryText}</strong>
+            `;
+            
+            // عرض النتائج
+            const searchResultsGrid = document.getElementById('searchResultsGrid');
+            searchResultsGrid.innerHTML = '';
+            
+            if (results.length === 0) {
+                searchResultsGrid.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search" style="font-size: 4rem; color: #64748b; margin-bottom: 20px;"></i>
+                        <h3>لم يتم العثور على نتائج</h3>
+                        <p>جرب استخدام كلمات مفتاحية أخرى أو تغيير فلتر القسم</p>
+                    </div>
+                `;
+            } else {
+                results.forEach((fatwa, index) => {
+                    const card = createFatwaCard(fatwa, index);
+                    searchResultsGrid.appendChild(card);
+                });
+            }
+            
+            // تحديث الأزرار المحفوظة
+            updateBookmarkButtons();
+            
+            // تحديث الرسوم المتحركة
+            if (typeof AOS !== 'undefined') {
+                AOS.refresh();
+            }
+        }
+
+        function goBackToHome() {
+            // إعادة تعيين المتغيرات العالمية
+            currentCategory = null;
+            // إظهار المحتوى الرئيسي وإخفاء صفحة القسم أو نتائج البحث
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('categoryView').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            
+            // إظهار الأقسام الرئيسية للصفحة
+            document.querySelector('.hero-section').style.display = 'block';
+            document.querySelector('.search-section').style.display = 'block';
+            document.querySelector('.features-section').style.display = 'block';
+            document.querySelector('.fatwas-container').style.display = 'block';
+            document.querySelector('.footer').style.display = 'block';
+            
+            // إخفاء صفحة نتائج البحث إذا كانت مفتوحة
+            document.getElementById('searchResultsPage').style.display = 'none';
+            
+            // مسح قيم البحث والفلاتر
+            const searchInputEl = document.getElementById('searchInput');
+            if (searchInputEl) searchInputEl.value = '';
+            const categoryFilterEl = document.getElementById('categoryFilter');
+            if (categoryFilterEl) categoryFilterEl.value = 'all';
+            
+            // عرض الفتاوى الرئيسية
+            displayFatwas();
+            
+            // تحديث العنوان ومعلومات البحث
+            document.getElementById('sectionTitle').textContent = 'أحدث الفتاوى';
+            const searchResultsEl = document.getElementById('searchResults');
+            if (searchResultsEl) searchResultsEl.textContent = '';
+            
+            // التمرير إلى أعلى الصفحة
+            window.scrollTo(0, 0);
+        }
+
+        function filterByCategory(category) {
+            document.getElementById('categoryFilter').value = category;
+            performSearch();
+        }
+
+        // Feature Functions
+        function toggleBookmark(fatwaId) {
+            const index = bookmarkedFatwas.indexOf(fatwaId);
+            if (index > -1) {
+                bookmarkedFatwas.splice(index, 1);
+                showNotification('تم إزالة الفتوى من المحفوظات');
+            } else {
+                bookmarkedFatwas.push(fatwaId);
+                showNotification('تم حفظ الفتوى');
+            }
+            localStorage.setItem('bookmarkedFatwas', JSON.stringify(bookmarkedFatwas));
+            updateBookmarkButtons();
+        }
+
+        function updateBookmarkButtons() {
+            document.querySelectorAll('.bookmark-btn').forEach(btn => {
+                const fatwaId = btn.dataset.fatwaId;
+                btn.classList.toggle('bookmarked', bookmarkedFatwas.includes(fatwaId));
+            });
+        }
+
+        function copyFatwa(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('تم نسخ الفتوى');
+            }).catch(() => {
+                showNotification('فشل في النسخ', 'error');
+            });
+        }
+
+        function copyFatwaText(fatwaId) {
+            const [category, idx] = fatwaId.split('-');
+            const fatwa = fatwaData[category]?.[parseInt(idx)];
+            if (fatwa) {
+                const text = `${fatwa.question}\n\n${fatwa.answer}\n\nالمصدر: ${fatwa.source || 'غير محدد'}\n\n© حقوق النشر محفوظة لموقع المحراب للفتاوى الشرعية`;
+                copyFatwa(text);
+            }
+        }
+
+        function printFatwa(fatwaElement) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>طباعة الفتوى</title>
+                    <style>
+                        body { font-family: 'Tajawal', sans-serif; direction: rtl; padding: 20px; }
+                        .fatwa-card { border: 1px solid #ccc; padding: 20px; border-radius: 10px; }
+                        .fatwa-actions { display: none; }
+                    </style>
+                </head>
+                <body>${fatwaElement.outerHTML}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        async function shareAsImage(fatwaElement) {
+            try {
+                if (typeof html2canvas === 'undefined') {
+                    showNotification('مكتبة تحويل الصور غير متاحة', 'error');
+                    return;
+                }
+                
+                // إضافة حقوق النشر مؤقتاً للصورة
+                const copyrightDiv = document.createElement('div');
+                copyrightDiv.innerHTML = '<div style="text-align: center; padding: 10px; background: #f8fafc; border-top: 2px solid #ca8a04; font-size: 0.9rem; color: #64748b; margin-top: 15px;">© حقوق النشر محفوظة لموقع المحراب للفتاوى الشرعية</div>';
+                fatwaElement.appendChild(copyrightDiv);
+                
+                const canvas = await html2canvas(fatwaElement, {
+                    backgroundColor: '#ffffff',
+                    scale: 2
+                });
+                
+                // إزالة حقوق النشر بعد التصوير
+                fatwaElement.removeChild(copyrightDiv);
+                
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'fatwa-almihrab.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showNotification('تم تحميل الصورة مع حقوق النشر');
+                });
+            } catch (error) {
+                showNotification('فشل في إنشاء الصورة', 'error');
+            }
+        }
+
+        function toggleLike(fatwaId, button) {
+            try {
+                let likes = JSON.parse(localStorage.getItem(`likes-${fatwaId}`)) || 0;
+                if (button.classList.contains('liked')) {
+                    likes--;
+                    button.classList.remove('liked');
+                } else {
+                    likes++;
+                    button.classList.add('liked');
+                }
+                localStorage.setItem(`likes-${fatwaId}`, likes);
+                button.querySelector('.like-count').textContent = likes;
+                showNotification(button.classList.contains('liked') ? 'تم الإعجاب' : 'تم إلغاء الإعجاب');
+            } catch (error) {
+                console.error('Error toggling like:', error);
+                showNotification('خطأ في حفظ الإعجاب', 'error');
+            }
+        }
+
+
+
+        // Report Issue Function
+        function reportIssue() {
+            const phoneNumber = '+96877599875';
+            const message = encodeURIComponent('السلام عليكم، أريد الإبلاغ عن مشكلة في موقع المحراب للفتاوى الشرعية.');
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+            
+            window.open(whatsappUrl, '_blank');
+            showNotification('تم توجيهك لواتساب للإبلاغ عن المشكلة');
+        }
+
+        // Navigation Functions
+        function focusSearch() {
+            // إذا كنا في صفحة نتائج البحث، نعود للصفحة الرئيسية أولاً
+            if (document.getElementById('searchResultsPage').style.display === 'block') {
+                goBackToHome();
+            }
+            
+            document.getElementById('searchInput').focus();
+            document.querySelector('.search-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showLatest() {
+            // إذا كنا في صفحة نتائج البحث، نعود للصفحة الرئيسية أولاً
+            if (document.getElementById('searchResultsPage').style.display === 'block') {
+                goBackToHome();
+            }
+            
+            currentView = 'latest';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = 'all';
+            displayFatwas();
+            document.getElementById('sectionTitle').textContent = 'أحدث الفتاوى';
+            document.getElementById('searchResults').textContent = '';
+        }
+
+        function showCategories() {
+            toggleBurgerMenu();
+        }
+
+        function showBookmarks() {
+            // إذا كنا في صفحة نتائج البحث، نعود للصفحة الرئيسية أولاً
+            if (document.getElementById('searchResultsPage').style.display === 'block') {
+                goBackToHome();
+            }
+            
+            if (bookmarkedFatwas.length === 0) {
+                showNotification('لا توجد فتاوى محفوظة');
+                return;
+            }
+
+            let bookmarkedData = [];
+            bookmarkedFatwas.forEach(fatwaId => {
+                const [category, idx] = fatwaId.split('-');
+                const fatwa = fatwaData[category]?.[parseInt(idx)];
+                if (fatwa) {
+                    bookmarkedData.push({ ...fatwa, category, id: fatwaId });
+                }
+            });
+
+            displayFatwas(bookmarkedData);
+            document.getElementById('sectionTitle').textContent = 'الفتاوى المحفوظة';
+            document.getElementById('searchResults').textContent = `${bookmarkedData.length} فتوى محفوظة`;
+        }
+
+        // Notification System
+        function showNotification(message, type = 'success') {
+            // Use Toastify for better notifications
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: type === 'error' ? "#dc2626" : "#16a34a",
+                stopOnFocus: true,
+            }).showToast();
+        }
+
+        // Close burger menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const burgerMenu = document.getElementById('burgerMenu');
+            const burgerBtn = document.querySelector('.navbar-actions button[onclick="toggleBurgerMenu()"]');
+            
+            if (!burgerMenu.contains(e.target) && !burgerBtn.contains(e.target)) {
+                burgerMenu.classList.remove('active');
+            }
+        });
+
+        // Scroll to top on page load
+        window.addEventListener('load', () => {
+            window.scrollTo(0, 0);
+        });
+
+        // تحديث شريط التقدم بناءً على التمرير
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.body.scrollHeight - window.innerHeight;
+            const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+            const progressBar = document.getElementById('progressBar');
+            if (progressBar) {
+                progressBar.style.width = progress + '%';
+            }
+        });
+    </script>
+</body>
+</html>
