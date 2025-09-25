@@ -259,14 +259,20 @@
             } catch (error) {
                 // Handle errors gracefully
                 let errMsg = error.message || '';
-                if (errMsg.includes('email-already-in-use')) {
+                // Firebase error codes can be accessed via error.code
+                if (error.code === 'auth/configuration-not-found') {
+                    errMsg = 'لم يتم تهيئة خدمة المصادقة لحساب Firebase الخاص بك. يرجى تفعيل تسجيل الدخول بالبريد الإلكتروني من لوحة Firebase.';
+                } else if (error.code === 'auth/email-already-in-use') {
                     errMsg = 'البريد الإلكتروني مستخدم بالفعل.';
-                } else if (errMsg.includes('weak-password')) {
+                } else if (error.code === 'auth/weak-password') {
                     errMsg = 'كلمة المرور ضعيفة. يرجى اختيار كلمة مرور أقوى.';
-                } else if (errMsg.includes('invalid-email')) {
+                } else if (error.code === 'auth/invalid-email') {
                     errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
+                } else {
+                    // Fallback generic message
+                    errMsg = 'حدث خطأ: ' + errMsg;
                 }
-                signupError.textContent = 'حدث خطأ: ' + errMsg;
+                signupError.textContent = errMsg;
             }
         });
 
@@ -290,12 +296,14 @@
                     window.location.href = 'index.html';
                 }, 800);
             } catch (error) {
-                let errMsg = error.message || '';
-                if (errMsg.includes('auth/user-not-found')) {
+                let errMsg = '';
+                if (error.code === 'auth/configuration-not-found') {
+                    errMsg = 'لم يتم تهيئة خدمة المصادقة لحساب Firebase الخاص بك. يرجى تفعيل تسجيل الدخول بالبريد الإلكتروني من لوحة Firebase.';
+                } else if (error.code === 'auth/user-not-found') {
                     errMsg = 'لا يوجد حساب بهذا البريد.';
-                } else if (errMsg.includes('wrong-password')) {
+                } else if (error.code === 'auth/wrong-password') {
                     errMsg = 'كلمة المرور غير صحيحة.';
-                } else if (errMsg.includes('invalid-email')) {
+                } else if (error.code === 'auth/invalid-email') {
                     errMsg = 'صيغة البريد الإلكتروني غير صحيحة.';
                 } else {
                     errMsg = 'بيانات الدخول غير صحيحة أو حدث خطأ. حاول مرة أخرى.';
