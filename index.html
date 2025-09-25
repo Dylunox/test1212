@@ -1739,10 +1739,56 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Initialize Firebase (module import)
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js';
+        import { getDatabase, ref as dbRef, get, set, update } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js';
+
+        // Firebase configuration (same as auth page)
+        const firebaseConfig = {
+            apiKey: 'AIzaSyD8t8mNgxRq0Kivx55VTGQRrZCZU40QS1g',
+            authDomain: 'taqwa-1090d.firebaseapp.com',
+            databaseURL: 'https://taqwa-1090d-default-rtdb.firebaseio.com',
+            projectId: 'taqwa-1090d',
+            storageBucket: 'taqwa-1090d.firebasestorage.app',
+            messagingSenderId: '592345552776',
+            appId: '1:592345552776:web:beb884c5b844a4275ccc3d',
+            measurementId: 'G-09H2NHZWGG'
+        };
+
+        // Initialize app and services
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+        const db = getDatabase(firebaseApp);
+
+        // Current authenticated user
+        let currentUser = null;
+
+        // Listen to authentication state changes
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                // Redirect unauthenticated users to auth page
+                window.location.href = 'auth.html';
+            } else {
+                currentUser = user;
+                try {
+                    // Load user-specific settings and bookmarks
+                    await loadUserData();
+                } catch (e) {
+                    console.error('Error loading user data:', e);
+                }
+                // Initialize the rest of the app (load data etc.) after user is authenticated
+                initializeAppFeatures();
+            }
+        });
+
         // Global Variables
         let fatwaData = {};
+        // Bookmarked fatwas array will be loaded from Firebase for authenticated users.
         let bookmarkedFatwas = JSON.parse(localStorage.getItem('bookmarkedFatwas')) || [];
+        // Object to hold user-specific settings (theme, readingMode, etc.) loaded from Firebase.
+        let userSettings = {};
         let recognition;
         let currentView = 'latest';
         let currentCategory = null;
@@ -1799,69 +1845,181 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        /**
+         * Load user-specific settings and bookmarks from Firebase.
+         * This function is invoked after the user has been authenticated.
+         */
+        async function loadUserData() {
+            if (!currentUser) return;
+            try {
+                // Fetch settings
+                const settingsSnap = await get(dbRef(db, 'users/' + currentUser.uid + '/settings'));
+                if (settingsSnap.exists()) {
+                    userSettings = settingsSnap.val() || {};
+                } else {
+                    userSettings = {};
+                }
+                // Apply theme and reading mode based on user settings
+                // If no setting is found, fallback to theme based on localStorage and time of day
+                applyThemeFromSettings();
+                applyReadingModeFromSettings();
+                // Fetch bookmarks
+                const bookmarksSnap = await get(dbRef(db, 'users/' + currentUser.uid + '/bookmarks'));
+                if (bookmarksSnap.exists()) {
+                    const data = bookmarksSnap.val();
+                    // Ensure it's an array
+                    bookmarkedFatwas = Array.isArray(data) ? data : [];
+                } else {
+                    bookmarkedFatwas = [];
+                }
+                // Cache bookmarks locally for faster access and offline use
+                localStorage.setItem('bookmarkedFatwas', JSON.stringify(bookmarkedFatwas));
+            } catch (e) {
+                console.error('خطأ في تحميل إعدادات المستخدم أو المحفوظات:', e);
+                // Fallback to localStorage if DB unavailable
+                loadBookmarks();
+                applyThemeFromSettings();
+            }
+        }
+
+        /**
+         * Initialize application features after authentication and user data are loaded.
+         */
+        function initializeAppFeatures() {
+            // Voice search setup
+            setupVoiceSearch();
+            // Load fatwa data from cache or Google Sheets
+            loadFatwaData();
+            // Display daily quote
+            displayDailyQuote();
+            // Set up event listeners once
+            setupEventListeners();
+        }
+
+        /**
+         * Apply theme from user settings or fallback to localStorage/time-of-day theme.
+         */
+        function applyThemeFromSettings() {
+            // Determine if dark mode should be enabled
+            let darkMode = false;
+            if (userSettings && userSettings.theme) {
+                darkMode = userSettings.theme === 'dark';
+            } else {
+                const savedTheme = localStorage.getItem('theme');
+                const hour = new Date().getHours();
+                const isNight = hour < 6 || hour > 18;
+                darkMode = savedTheme === 'dark' || (!savedTheme && isNight);
+            }
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            // Update toggle button icon accordingly
+            const themeBtn = document.querySelector('.navbar-actions button[onclick="toggleTheme()"]');
+            if (themeBtn) {
+                const icon = themeBtn.querySelector('i');
+                if (icon) {
+                    if (document.body.classList.contains('dark-mode')) {
+                        icon.classList.remove('fa-moon');
+                        icon.classList.add('fa-sun');
+                    } else {
+                        icon.classList.remove('fa-sun');
+                        icon.classList.add('fa-moon');
+                    }
+                }
+            }
+        }
+
+        /**
+         * Apply reading mode from user settings.
+         */
+        function applyReadingModeFromSettings() {
+            if (userSettings && userSettings.readingMode) {
+                document.body.classList.add('reading-mode');
+            } else {
+                document.body.classList.remove('reading-mode');
+            }
+        }
+
+        /**
+         * Save updated settings back to Firebase.
+         * @param {Object} updates - Partial settings to merge.
+         */
+        async function saveUserSettings(updates) {
+            if (!currentUser) return;
+            try {
+                // Merge with current settings
+                userSettings = { ...userSettings, ...updates };
+                await update(dbRef(db, 'users/' + currentUser.uid + '/settings'), updates);
+            } catch (e) {
+                console.error('خطأ في تحديث إعدادات المستخدم:', e);
+            }
+        }
+
+        /**
+         * Update bookmarks array in Firebase.
+         */
+        async function updateBookmarksInDb() {
+            if (!currentUser) return;
+            try {
+                await update(dbRef(db, 'users/' + currentUser.uid), { bookmarks: bookmarkedFatwas });
+            } catch (e) {
+                console.error('خطأ في تحديث المحفوظات:', e);
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('تم تحميل الصفحة - بدء التهيئة');
-            
-            // إظهار صفحة التحميل
+            // Always show loading screen until authentication state is resolved
             showLoadingScreen();
-            
-            loadTheme();
-            loadBookmarks();
-            setupVoiceSearch();
-            
-            // تحميل البيانات فوراً عند فتح الموقع
-            loadFatwaData();
-
-            // عرض اقتباس يومي عند تحميل الصفحة
-            displayDailyQuote();
-            
-            setupEventListeners();
-            
-            console.log('تم إكمال التهيئة');
         });
 
         // Bookmarks Management
         function loadBookmarks() {
+            // For authenticated users, bookmarks are loaded via loadUserData().
+            if (currentUser) return;
             try {
-                bookmarkedFatwas = JSON.parse(localStorage.getItem('bookmarkedFatwas')) || [];
-                console.log(`تم تحميل ${bookmarkedFatwas.length} فتوى محفوظة`);
+                const stored = JSON.parse(localStorage.getItem('bookmarkedFatwas'));
+                bookmarkedFatwas = Array.isArray(stored) ? stored : [];
+                console.log(`تم تحميل ${bookmarkedFatwas.length} فتوى محفوظة من التخزين المحلي`);
             } catch (error) {
-                console.error('خطأ في تحميل الفتاوى المحفوظة:', error);
+                console.error('خطأ في تحميل الفتاوى المحفوظة من التخزين المحلي:', error);
                 bookmarkedFatwas = [];
             }
         }
 
         // Theme Management
         function loadTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const hour = new Date().getHours();
-            const isNight = hour < 6 || hour > 18;
-            
-            if (savedTheme === 'dark' || (!savedTheme && isNight)) {
-                document.body.classList.add('dark-mode');
-                const themeBtn = document.querySelector('.navbar-actions button[onclick="toggleTheme()"]');
-                if (themeBtn) {
-                    const icon = themeBtn.querySelector('i');
-                    if (icon) {
-                        icon.classList.replace('fa-moon', 'fa-sun');
-                    }
-                }
-            }
+            // Delegate to applyThemeFromSettings which considers both user settings and local fallback
+            applyThemeFromSettings();
         }
 
         function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.toggle('dark-mode');
             const themeBtn = document.querySelector('.navbar-actions button[onclick="toggleTheme()"]');
-            const icon = themeBtn.querySelector('i');
-            icon.classList.toggle('fa-moon');
-            icon.classList.toggle('fa-sun');
-            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+            if (themeBtn) {
+                const icon = themeBtn.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-moon', !isDark);
+                    icon.classList.toggle('fa-sun', isDark);
+                }
+            }
+            // Update localStorage for offline fallback
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            // Persist theme in Firebase settings if user is authenticated
+            if (currentUser) {
+                saveUserSettings({ theme: isDark ? 'dark' : 'light' });
+            }
         }
 
         function toggleReadingMode() {
-            document.body.classList.toggle('reading-mode');
-            showNotification(document.body.classList.contains('reading-mode') ? 'تم تفعيل وضع القراءة' : 'تم إلغاء وضع القراءة');
+            const isReadingMode = document.body.classList.toggle('reading-mode');
+            // Persist reading mode in Firebase settings if user is authenticated
+            if (currentUser) {
+                saveUserSettings({ readingMode: isReadingMode });
+            }
+            showNotification(isReadingMode ? 'تم تفعيل وضع القراءة' : 'تم إلغاء وضع القراءة');
         }
 
         function toggleBurgerMenu() {
@@ -2622,13 +2780,19 @@
         function toggleBookmark(fatwaId) {
             const index = bookmarkedFatwas.indexOf(fatwaId);
             if (index > -1) {
+                // Remove bookmark
                 bookmarkedFatwas.splice(index, 1);
                 showNotification('تم إزالة الفتوى من المحفوظات');
             } else {
+                // Add bookmark
                 bookmarkedFatwas.push(fatwaId);
                 showNotification('تم حفظ الفتوى');
             }
+            // Update local cache
             localStorage.setItem('bookmarkedFatwas', JSON.stringify(bookmarkedFatwas));
+            // Persist bookmarks in Firebase if authenticated
+            updateBookmarksInDb();
+            // Refresh bookmark icons
             updateBookmarkButtons();
         }
 
@@ -2820,6 +2984,27 @@
         // Scroll to top on page load
         window.addEventListener('load', () => {
             window.scrollTo(0, 0);
+        });
+
+        // Expose functions globally for inline event handlers
+        Object.assign(window, {
+            toggleTheme,
+            toggleReadingMode,
+            toggleBurgerMenu,
+            startVoiceSearch,
+            focusSearch,
+            showLatest,
+            showCategories,
+            showBookmarks,
+            reportIssue,
+            goBackToHome,
+            reloadData,
+            toggleBookmark,
+            copyFatwaText,
+            printFatwa,
+            shareAsImage,
+            toggleLike,
+            filterByCategory
         });
 
         // تحديث شريط التقدم بناءً على التمرير
