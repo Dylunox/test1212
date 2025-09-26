@@ -23,10 +23,13 @@
             margin: 0;
             padding: 0;
             min-height: 100vh;
-            background: linear-gradient(135deg, #1e3a8a, #ca8a04);
+            /* Animated gradient background */
+            background: linear-gradient(45deg, #1e3a8a, #ca8a04, #c084fc, #34d399);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             color: #1e293b;
             padding: 40px 15px;
         }
@@ -34,12 +37,14 @@
         .auth-container {
             width: 100%;
             max-width: 420px;
-            background: rgba(255, 255, 255, 0.97);
+            background: rgba(255, 255, 255, 0.92);
             padding: 40px 35px 30px;
             border-radius: 20px;
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(16px);
             position: relative;
+            overflow: hidden;
         }
         /* Dark mode support */
         body.dark-mode .auth-container {
@@ -58,33 +63,123 @@
         body.dark-mode h2 {
             color: #60a5fa;
         }
+
+        /* Logo placeholder */
+        .logo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 2.2rem;
+            color: #1e3a8a;
+        }
         /* Form visibility */
         form {
-            display: none;
+            display: none; /* hide both forms by default, will be toggled via JavaScript */
         }
-        form.active {
-            display: block;
-        }
+        /* The active form will be shown via inline style in JavaScript */
         /* Input fields */
         .auth-container input {
             width: 100%;
             padding: 14px 18px;
             margin-bottom: 18px;
-            border: 2px solid #e2e8f0;
+            border: 1px solid #d1d5db;
             border-radius: 12px;
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            background: white;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            background: #f9fafb;
         }
         .auth-container input:focus {
-            border-color: #ca8a04;
-            box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15);
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+            background-color: #ffffff;
         }
         body.dark-mode .auth-container input {
             background: #334155;
             border-color: #475569;
             color: #e2e8f0;
+        }
+
+        /* Input group with icons and toggle */
+        .input-group {
+            display: flex;
+            align-items: center;
+            overflow: hidden; /* ensure borders fully enclose the group */
+            border: 1.5px solid #d1d5db;
+            border-radius: 12px;
+            background: #f9fafb;
+            margin-bottom: 18px;
+            padding: 0 14px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .input-group input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 14px 0;
+            font-size: 1rem;
+            color: #1e293b;
+            outline: none;
+        }
+        .input-group .input-icon {
+            margin-left: 12px;
+            font-size: 1rem;
+            color: #9ca3af;
+        }
+        .input-group .password-toggle {
+            margin-right: 12px;
+            font-size: 1rem;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.3s ease, transform 0.4s ease;
+        }
+        .input-group .password-toggle:hover {
+            color: #f59e0b;
+        }
+
+        /* Rotate the eye icon when toggled */
+        .password-toggle.active {
+            transform: rotate(180deg);
+        }
+        body.dark-mode .input-group {
+            background: #334155;
+            border-color: #475569;
+        }
+        body.dark-mode .input-group .input-icon,
+        body.dark-mode .input-group .password-toggle {
+            color: #94a3b8;
+        }
+        /* Highlight input group on focus */
+        .input-group:focus-within {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+            background-color: #ffffff;
+        }
+        .input-group:focus-within .input-icon,
+        .input-group:focus-within .password-toggle {
+            color: #f59e0b;
+        }
+
+        /* Responsive adjustments for small screens */
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 24px 20px 20px;
+            }
+            h2 {
+                font-size: 1.6rem;
+                margin-bottom: 20px;
+            }
+            .auth-container button {
+                font-size: 0.9rem;
+                padding: 12px;
+            }
+            .input-group {
+                border-radius: 10px;
+                margin-bottom: 14px;
+            }
         }
         /* Buttons */
         .auth-container button {
@@ -116,6 +211,13 @@
         body.dark-mode .form-msg {
             color: #f87171;
         }
+
+        /* Animated gradient background keyframes */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
         /* Toggle links */
         .toggle-links {
             text-align: center;
@@ -133,6 +235,58 @@
         .toggle-links span:hover {
             text-decoration: underline;
         }
+
+        /* Password strength criteria list */
+        .criteria-list {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0 10px;
+        }
+        .criteria-list li {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        .criteria-list li i {
+            margin-left: 8px;
+            font-size: 0.8rem;
+        }
+        .criteria-list li.valid {
+            color: #16a34a;
+        }
+        .criteria-list li.valid i {
+            color: #16a34a;
+        }
+        .criteria-list li.invalid {
+            color: #dc2626;
+        }
+        .criteria-list li.invalid i {
+            color: #dc2626;
+        }
+
+        /* Password strength meter */
+        .strength-meter {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 4px 0 8px;
+        }
+        .strength-bar {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s ease, background-color 0.3s ease;
+            background-color: #ef4444; /* default weak color */
+        }
+        .strength-text {
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #6b7280;
+        }
         /* Success toast styling */
         .toast-success {
             color: #16a34a;
@@ -144,20 +298,51 @@
 </head>
 <body>
     <div class="auth-container">
+        <div class="logo"><i class="fa-solid fa-mosque"></i></div>
         <h2 id="formTitle">تسجيل الدخول</h2>
         <!-- Login Form -->
         <form id="loginForm" class="active">
-            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" required>
-            <input type="password" id="loginPassword" placeholder="كلمة المرور" required>
+            <div class="input-group">
+                <i class="fa-solid fa-envelope input-icon"></i>
+                <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" required>
+            </div>
+            <div class="input-group password-group">
+                <input type="password" id="loginPassword" placeholder="كلمة المرور" required>
+                <i class="fa-solid fa-eye password-toggle" data-target="loginPassword"></i>
+            </div>
             <button type="submit">تسجيل الدخول</button>
             <p class="form-msg" id="loginError"></p>
         </form>
         <!-- Signup Form -->
         <form id="signupForm">
-            <input type="text" id="signupName" placeholder="الاسم الكامل" required>
-            <input type="email" id="signupEmail" placeholder="البريد الإلكتروني" required>
-            <input type="password" id="signupPassword" placeholder="كلمة المرور" required>
-            <input type="password" id="signupConfirmPassword" placeholder="تأكيد كلمة المرور" required>
+            <div class="input-group">
+                <i class="fa-solid fa-user input-icon"></i>
+                <input type="text" id="signupName" placeholder="الاسم الكامل" required>
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-envelope input-icon"></i>
+                <input type="email" id="signupEmail" placeholder="البريد الإلكتروني" required>
+            </div>
+            <div class="input-group password-group">
+                <input type="password" id="signupPassword" placeholder="كلمة المرور" required>
+                <i class="fa-solid fa-eye password-toggle" data-target="signupPassword"></i>
+            </div>
+            <div class="input-group password-group">
+                <input type="password" id="signupConfirmPassword" placeholder="تأكيد كلمة المرور" required>
+                <i class="fa-solid fa-eye password-toggle" data-target="signupConfirmPassword"></i>
+            </div>
+            <!-- Password strength meter -->
+            <div class="strength-meter" id="strengthMeter">
+                <div id="strengthBar" class="strength-bar"></div>
+            </div>
+            <div id="strengthText" class="strength-text"></div>
+            <!-- Password strength criteria -->
+            <ul id="passwordCriteria" class="criteria-list">
+                <li id="critLength" class="invalid"><i class="fa-solid fa-circle-xmark"></i> ٨ أحرف فأكثر</li>
+                <li id="critUppercase" class="invalid"><i class="fa-solid fa-circle-xmark"></i> حرف كبير واحد على الأقل</li>
+                <li id="critNumber" class="invalid"><i class="fa-solid fa-circle-xmark"></i> رقم واحد على الأقل</li>
+                <li id="critSymbol" class="invalid"><i class="fa-solid fa-circle-xmark"></i> رمز واحد على الأقل (مثلاً !@#$)</li>
+            </ul>
             <button type="submit">إنشاء حساب</button>
             <p class="form-msg" id="signupError"></p>
         </form>
@@ -189,25 +374,126 @@
         const loginError = document.getElementById('loginError');
         const signupError = document.getElementById('signupError');
 
-        // Toggle forms
-        toSignup.addEventListener('click', () => {
-            loginForm.classList.remove('active');
-            signupForm.classList.add('active');
+        // Password strength elements for signup
+        const passwordField = document.getElementById('signupPassword');
+        const critLength = document.getElementById('critLength');
+        const critUppercase = document.getElementById('critUppercase');
+        const critNumber = document.getElementById('critNumber');
+        const critSymbol = document.getElementById('critSymbol');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+
+        // Helper to update a single criterion (adds/removes classes and updates icon)
+        function updateCriterion(element, isValid) {
+            element.classList.toggle('valid', isValid);
+            element.classList.toggle('invalid', !isValid);
+            const icon = element.querySelector('i');
+            if (isValid) {
+                icon.classList.remove('fa-circle-xmark');
+                icon.classList.add('fa-circle-check');
+            } else {
+                icon.classList.remove('fa-circle-check');
+                icon.classList.add('fa-circle-xmark');
+            }
+        }
+
+        // Live password strength check and meter update
+        passwordField.addEventListener('input', () => {
+            const val = passwordField.value;
+            const lengthValid = val.length >= 8;
+            const uppercaseValid = /[A-Z]/.test(val);
+            const numberValid = /[0-9]/.test(val);
+            const symbolValid = /[^A-Za-z0-9]/.test(val);
+            // Update criteria
+            updateCriterion(critLength, lengthValid);
+            updateCriterion(critUppercase, uppercaseValid);
+            updateCriterion(critNumber, numberValid);
+            updateCriterion(critSymbol, symbolValid);
+            // Calculate valid count and update meter
+            const validCount = [lengthValid, uppercaseValid, numberValid, symbolValid].filter(Boolean).length;
+            const widthPercentage = (validCount / 4) * 100;
+            strengthBar.style.width = widthPercentage + '%';
+            // Determine color and text
+            let barColor = '#ef4444';
+            let text = 'ضعيفة';
+            let textColor = '#dc2626';
+            if (validCount >= 3) {
+                barColor = '#f59e0b';
+                text = 'متوسطة';
+                textColor = '#f59e0b';
+            }
+            if (validCount === 4) {
+                barColor = '#16a34a';
+                text = 'قوية';
+                textColor = '#16a34a';
+            }
+            strengthBar.style.backgroundColor = barColor;
+            strengthText.textContent = text;
+            strengthText.style.color = textColor;
+        });
+
+        // Toggle password visibility using eye icons
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const targetId = toggle.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                if (!input) return;
+                const isPassword = input.getAttribute('type') === 'password';
+                const newType = isPassword ? 'text' : 'password';
+                input.setAttribute('type', newType);
+                // Toggle eye icon classes and rotation animation
+                if (!isPassword) {
+                    // Going back to hidden password
+                    toggle.classList.remove('fa-eye-slash');
+                    toggle.classList.add('fa-eye');
+                    toggle.classList.remove('active');
+                } else {
+                    // Showing password
+                    toggle.classList.remove('fa-eye');
+                    toggle.classList.add('fa-eye-slash');
+                    toggle.classList.add('active');
+                }
+            });
+        });
+
+        // Initialize form visibility on page load
+        loginForm.style.display = 'block';
+        signupForm.style.display = 'none';
+
+        // Functions to show signup/login forms
+        function showSignup() {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
             formTitle.textContent = 'إنشاء حساب';
             toSignup.style.display = 'none';
             toLogin.style.display = 'inline';
             loginError.textContent = '';
             signupError.textContent = '';
-        });
-        toLogin.addEventListener('click', () => {
-            signupForm.classList.remove('active');
-            loginForm.classList.add('active');
+            // Reset password strength meter and criteria when switching to signup
+            if (strengthBar && strengthText) {
+                strengthBar.style.width = '0%';
+                strengthBar.style.backgroundColor = '#ef4444';
+                strengthText.textContent = '';
+            }
+            if (critLength && critUppercase && critNumber && critSymbol) {
+                updateCriterion(critLength, false);
+                updateCriterion(critUppercase, false);
+                updateCriterion(critNumber, false);
+                updateCriterion(critSymbol, false);
+            }
+        }
+        function showLogin() {
+            signupForm.style.display = 'none';
+            loginForm.style.display = 'block';
             formTitle.textContent = 'تسجيل الدخول';
             toLogin.style.display = 'none';
             toSignup.style.display = 'inline';
             loginError.textContent = '';
             signupError.textContent = '';
-        });
+        }
+        // Attach events to toggle links
+        toSignup.addEventListener('click', showSignup);
+        toLogin.addEventListener('click', showLogin);
 
         // Handle signup using Supabase
         signupForm.addEventListener('submit', async (e) => {
@@ -220,6 +506,15 @@
             // Validate password match
             if (password !== confirmPassword) {
                 signupError.textContent = 'كلمتا المرور غير متطابقتين.';
+                return;
+            }
+            // Validate password meets strength criteria
+            const lengthValid = password.length >= 8;
+            const uppercaseValid = /[A-Z]/.test(password);
+            const numberValid = /[0-9]/.test(password);
+            const symbolValid = /[^A-Za-z0-9]/.test(password);
+            if (!lengthValid || !uppercaseValid || !numberValid || !symbolValid) {
+                signupError.textContent = 'يرجى التأكد من استيفاء متطلبات قوة كلمة المرور أعلاه.';
                 return;
             }
             if (!name) {
